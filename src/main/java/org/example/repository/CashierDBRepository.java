@@ -104,11 +104,12 @@ public class CashierDBRepository implements CashierRepository {
     @Override
     public Cashier update(Cashier entity) {
         logger.traceEntry();
-        String query = "UPDATE Cashiers SET name = ?, password = ?, username = ?";
+        String query = "UPDATE Cashiers SET name = ?, password = ?, username = ? WHERE id = ?";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(query)) {
             stmt.setString(1, entity.getName());
             stmt.setString(2, entity.getPassword());
             stmt.setString(3, entity.getUsername());
+            stmt.setInt(4, entity.getId());
             int rowsAffected = stmt.executeUpdate();
             logger.traceExit();
             return entity;
