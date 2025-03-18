@@ -34,9 +34,6 @@ public class Main {
         Optional<Cashier> cashier = cashierDBRepository.findById(1);
 
         if (game.isPresent() && cashier.isPresent()) {
-//            ticketDBRepository.save(new Ticket(0, game.get(), "David", "Margaretelor", cashier.get(), 2, 10.25F));
-//            Iterable<Ticket> it = ticketDBRepository.getTicketsSoldForGame(game.get());
-//            it.forEach(System.out::println);
             ticketDBRepository.getTicketsForClient(new ClientFilterDTO("", "Margaretelor")).forEach(System.out::println);
         }
     }
