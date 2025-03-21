@@ -1,1 +1,2 @@
 2025-03-18 14:10:45 [main] INFO  org.example.utils.JdbcUtils - trying to connect to database ... jdbc:sqlite:/home/david/data/sqlite/my_database.db
+2025-03-21 12:18:45 [main] INFO  org.example.utils.JdbcUtils - trying to connect to database ... jdbc:sqlite:/home/david/data/sqlite/my_database.db

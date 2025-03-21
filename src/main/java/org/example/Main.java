@@ -3,13 +3,11 @@ package org.example;
 import org.example.dto.ClientFilterDTO;
 import org.example.model.Cashier;
 import org.example.model.Game;
-import org.example.model.Ticket;
 import org.example.repository.CashierDBRepository;
 import org.example.repository.GameDBRepository;
 import org.example.repository.TicketDBRepository;
 import org.example.utils.JdbcUtils;
 
-import javax.swing.text.html.Option;
 import java.io.FileReader;
 import java.util.Optional;
 import java.util.Properties;
