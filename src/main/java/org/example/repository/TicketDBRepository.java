@@ -63,7 +63,6 @@ public class TicketDBRepository implements TicketRepository {
             logger.error(e);
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

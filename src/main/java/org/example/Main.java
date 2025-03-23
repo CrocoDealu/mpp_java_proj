@@ -32,7 +32,7 @@ public class Main {
         Optional<Cashier> cashier = cashierDBRepository.findById(1);
 
         if (game.isPresent() && cashier.isPresent()) {
-            ticketDBRepository.getTicketsForClient(new ClientFilterDTO("", "Margaretelor")).forEach(System.out::println);
+            ticketDBRepository.getTicketsForClient(new ClientFilterDTO("David", "")).forEach(System.out::println);
         }
     }
 }
