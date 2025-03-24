@@ -119,6 +119,21 @@ public class CashierDBRepository implements CashierRepository {
         }
     }
 
+    @Override
+    public Optional<Cashier> findByUsername(String username) {
+        logger.traceEntry();
+        String query = "SELECT * FROM Cashiers WHERE \"username\" = ?";
+        try (PreparedStatement statement = jdbcUtils.getConnection().prepareStatement(query)) {
+            statement.setObject(1, username);
+            ResultSet resultSet = statement.executeQuery();
+            logger.traceExit();
+            return resultSet.next() ? Optional.of(mapResultSetToEntity(resultSet)) : Optional.empty();
+        } catch (SQLException e) {
+            logger.error(e);
+            throw new RuntimeException(e);
+        }
+    }
+
     private Cashier mapResultSetToEntity(ResultSet resultSet) {
         logger.traceEntry();
         try {

@@ -35,14 +35,13 @@ public class TicketDBRepository implements TicketRepository {
             int id = resultSet.getInt("id");
             String customerName = resultSet.getString("customer_name");
             String customerAddress = resultSet.getString("customer_address");
-            float price = resultSet.getFloat("price");
             int noOfSeats = resultSet.getInt("no_of_seats");
             int game_id = resultSet.getInt("game_id");
             int cashier_id = resultSet.getInt("cashier_id");
             Game game = gameRepository.findById(game_id).orElse(null);
             Cashier cashier = cashierRepository.findById(cashier_id).orElse(null);
             logger.traceExit();
-            return new Ticket(id, game, customerName, customerAddress, cashier, noOfSeats, price);
+            return new Ticket(id, game, customerName, customerAddress, cashier, noOfSeats);
         } catch (Exception e) {
             logger.error(e);
             System.out.println("Error mapping to ticket " + e);
@@ -87,14 +86,13 @@ public class TicketDBRepository implements TicketRepository {
     @Override
     public Ticket save(Ticket entity) {
         logger.traceEntry();
-        String query = "INSERT INTO Tickets (game_id, customer_name, customer_address, cashier_id, no_of_seats, price) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Tickets (game_id, customer_name, customer_address, cashier_id, no_of_seats) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, entity.getGame().getId());
             stmt.setString(2, entity.getCustomerName());
             stmt.setString(3, entity.getCustomerAddress());
             stmt.setInt(4, entity.getSeller().getId());
             stmt.setInt(5, entity.getNoOfSeats());
-            stmt.setFloat(6, entity.getPrice());
             int rows = stmt.executeUpdate();
             if (rows == 0) {
                 logger.log(Level.WARN, "No rows were affected");
@@ -118,14 +116,13 @@ public class TicketDBRepository implements TicketRepository {
     @Override
     public Ticket update(Ticket entity) {
         logger.traceEntry();
-        String sql = "UPDATE Tickets SET game_id = ?, customer_name = ?, customer_address = ?, cashier_id = ?, no_of_seats = ?, price = ?";
+        String sql = "UPDATE Tickets SET game_id = ?, customer_name = ?, customer_address = ?, cashier_id = ?, no_of_seats = ?";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, entity.getGame().getId());
             stmt.setString(2, entity.getCustomerName());
             stmt.setString(3, entity.getCustomerAddress());
             stmt.setInt(4, entity.getSeller().getId());
             stmt.setInt(5, entity.getNoOfSeats());
-            stmt.setFloat(6, entity.getPrice());
 
             int rows = stmt.executeUpdate();
             if (rows == 0) {
@@ -179,6 +176,7 @@ public class TicketDBRepository implements TicketRepository {
         logger.traceEntry();
         String sql = "SELECT * FROM Tickets";
         sql = processFilter(sql, filter);
+        logger.log(Level.INFO, "Processed filter");
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(sql)) {
             ResultSet resultSet = stmt.executeQuery();
             Map<Integer, Ticket> entities = new HashMap<>();
@@ -196,7 +194,7 @@ public class TicketDBRepository implements TicketRepository {
 
     private String processFilter(String sql, ClientFilterDTO filter) {
         StringBuilder modified = new StringBuilder(sql);
-        if (filter != null) {
+        if (filter != null && (filter.getName() != null || filter.getAddress() != null)) {
             modified.append(" WHERE ");
             List<String> params = new ArrayList<>();
             List<String> values = new ArrayList<>();

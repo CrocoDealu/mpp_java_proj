@@ -11,8 +11,9 @@ public class Game extends Entity<Integer> {
     private String competition;
     private int capacity;
     private String stage;
+    private float ticketPrice;
 
-    public Game(Integer integer, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage) {
+    public Game(Integer integer, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage, float ticketPrice) {
         super(integer);
         this.team1 = team1;
         this.team2 = team2;
@@ -21,6 +22,7 @@ public class Game extends Entity<Integer> {
         this.competition = competition;
         this.capacity = capacity;
         this.stage = stage;
+        this.ticketPrice = ticketPrice;
     }
 
     public String getTeam1() {
@@ -79,6 +81,14 @@ public class Game extends Entity<Integer> {
         this.stage = stage;
     }
 
+    public float getTicketPrice() {
+        return ticketPrice;
+    }
+
+    public void setTicketPrice(float ticketPrice) {
+        this.ticketPrice = ticketPrice;
+    }
+
     @Override
     public String toString() {
         return "Game{" +
@@ -90,6 +100,7 @@ public class Game extends Entity<Integer> {
                 ", competition='" + competition + '\'' +
                 ", capacity=" + capacity +
                 ", stage='" + stage + '\'' +
+                ", ticketPrice=" + ticketPrice +
                 '}';
     }
 
@@ -97,11 +108,11 @@ public class Game extends Entity<Integer> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Game game = (Game) o;
-        return team1Score == game.team1Score && team2Score == game.team2Score && capacity == game.capacity && Objects.equals(team1, game.team1) && Objects.equals(team2, game.team2) && Objects.equals(competition, game.competition) && Objects.equals(stage, game.stage);
+        return team1Score == game.team1Score && team2Score == game.team2Score && capacity == game.capacity && Objects.equals(team1, game.team1) && Objects.equals(team2, game.team2) && Objects.equals(competition, game.competition) && Objects.equals(stage, game.stage) && Float.compare(ticketPrice, game.getTicketPrice()) == 0;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(team1, team2, team1Score, team2Score, competition, capacity, stage);
+        return Objects.hash(team1, team2, team1Score, team2Score, competition, capacity, stage, ticketPrice);
     }
 }

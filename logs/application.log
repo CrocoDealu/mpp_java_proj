@@ -4,3 +4,4 @@
 2025-03-21 12:28:59 [main] ERROR org.example.repository.TicketDBRepository - org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (incomplete input)
 2025-03-21 12:29:07 [main] INFO  org.example.utils.JdbcUtils - trying to connect to database ... jdbc:sqlite:/home/david/data/sqlite/my_database.db
 2025-03-21 12:29:38 [main] INFO  org.example.utils.JdbcUtils - trying to connect to database ... jdbc:sqlite:/home/david/data/sqlite/my_database.db
+2025-03-23 18:57:45 [main] INFO  org.example.utils.JdbcUtils - trying to connect to database ... jdbc:sqlite:/home/david/data/sqlite/my_database.db

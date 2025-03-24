@@ -8,20 +8,18 @@ public class Ticket extends Entity<Integer> {
     private String customerAddress;
     private Cashier seller;
     private int noOfSeats;
-    private float price;
 
     public Ticket() {
         super(-1);
     }
 
-    public Ticket(Integer integer, Game game, String customerName, String customerAddress, Cashier seller, int noOfSeats, float price) {
+    public Ticket(Integer integer, Game game, String customerName, String customerAddress, Cashier seller, int noOfSeats) {
         super(integer);
         this.game = game;
         this.customerName = customerName;
         this.customerAddress = customerAddress;
         this.seller = seller;
         this.noOfSeats = noOfSeats;
-        this.price = price;
     }
 
 
@@ -65,19 +63,10 @@ public class Ticket extends Entity<Integer> {
         this.noOfSeats = noOfSeats;
     }
 
-    public float getPrice() {
-        return price;
-    }
-
-    public void setPrice(float price) {
-        this.price = price;
-    }
-
     @Override
     public String toString() {
         return "Ticket{" +
                 "id=" + id +
-                ", price=" + price +
                 ", noOfSeats=" + noOfSeats +
                 ", seller=" + seller +
                 ", customerAddress='" + customerAddress + '\'' +
@@ -90,11 +79,11 @@ public class Ticket extends Entity<Integer> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Ticket ticket = (Ticket) o;
-        return noOfSeats == ticket.noOfSeats && Float.compare(price, ticket.price) == 0 && Objects.equals(game, ticket.game) && Objects.equals(customerName, ticket.customerName) && Objects.equals(customerAddress, ticket.customerAddress) && Objects.equals(seller, ticket.seller);
+        return noOfSeats == ticket.noOfSeats && Objects.equals(game, ticket.game) && Objects.equals(customerName, ticket.customerName) && Objects.equals(customerAddress, ticket.customerAddress) && Objects.equals(seller, ticket.seller);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(game, customerName, customerAddress, seller, noOfSeats, price);
+        return Objects.hash(game, customerName, customerAddress, seller, noOfSeats);
     }
 }

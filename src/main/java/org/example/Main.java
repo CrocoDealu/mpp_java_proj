@@ -1,19 +1,28 @@
 package org.example;
 
-import org.example.dto.ClientFilterDTO;
-import org.example.model.Cashier;
-import org.example.model.Game;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
+import org.example.controller.LoginController;
 import org.example.repository.CashierDBRepository;
 import org.example.repository.GameDBRepository;
 import org.example.repository.TicketDBRepository;
+import org.example.service.CashierService;
+import org.example.service.GameService;
+import org.example.service.TicketService;
 import org.example.utils.JdbcUtils;
 
+import javafx.application.Application;
+
 import java.io.FileReader;
-import java.util.Optional;
+import java.io.IOException;
 import java.util.Properties;
 
-public class Main {
-    public static void main(String[] args) {
+public class Main extends Application{
+    @Override
+    public void start(Stage primaryStage) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/login.fxml"));
 
         Properties properties = new Properties();
         try {
@@ -24,15 +33,26 @@ public class Main {
 
         JdbcUtils jdbcUtils = new JdbcUtils(properties);
         GameDBRepository gameDBRepository = new GameDBRepository(jdbcUtils);
+        GameService gameService = new GameService(gameDBRepository);
         CashierDBRepository cashierDBRepository = new CashierDBRepository(jdbcUtils);
+        CashierService cashierService = new CashierService(cashierDBRepository);
         TicketDBRepository ticketDBRepository = new TicketDBRepository(jdbcUtils, gameDBRepository, cashierDBRepository);
+        TicketService ticketService = new TicketService(ticketDBRepository);
+        try {
+            AnchorPane root = loader.load();
 
-        Optional<Game> game = gameDBRepository.findById(2);
-
-        Optional<Cashier> cashier = cashierDBRepository.findById(1);
-
-        if (game.isPresent() && cashier.isPresent()) {
-            ticketDBRepository.getTicketsForClient(new ClientFilterDTO("David", "")).forEach(System.out::println);
+            Scene scene = new Scene(root);
+            primaryStage.setTitle("Login");
+            primaryStage.setScene(scene);
+            LoginController loginController = loader.getController();
+            loginController.setServices(gameService, cashierService, ticketService);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

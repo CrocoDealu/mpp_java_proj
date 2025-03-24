@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="413.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.TicketsController">
+   <children>
+      <VBox layoutY="7.0" prefHeight="406.0" prefWidth="700.0">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+               <children>
+                  <TextField fx:id="nameField" promptText="Name" />
+                  <TextField fx:id="addressField" promptText="Address" />
+                  <Button fx:id="searchButton" mnemonicParsing="false" onAction="#onSearchPressed" text="Search" />
+               </children>
+            </HBox>
+            <TableView fx:id="ticketsTable" prefHeight="200.0" prefWidth="200.0">
+              <columns>
+                <TableColumn fx:id="clientNameColumn" prefWidth="123.5" text="Client Name" />
+                <TableColumn fx:id="clientAddressColumn" minWidth="0.0" prefWidth="310.5" text="Client Address" />
+                <TableColumn fx:id="matchColumn" prefWidth="160.0" text="Match" />
+                <TableColumn fx:id="seatsColumn" prefWidth="103.5" text="Seats Bought" />
+              </columns>
+            </TableView>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

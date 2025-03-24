@@ -69,7 +69,7 @@ public class GameDBRepository implements GameRepository {
     @Override
     public Game save(Game entity) {
         logger.traceEntry();
-        String query = "INSERT INTO Games (team1, team2, team_1_score, team_2_score, competition, capactity, stage) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Games (team1, team2, team_1_score, team_2_score, competition, capactity, stage, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, entity.getTeam1());
             stmt.setString(2, entity.getTeam2());
@@ -78,6 +78,7 @@ public class GameDBRepository implements GameRepository {
             stmt.setString(5, entity.getCompetition());
             stmt.setInt(6, entity.getCapacity());
             stmt.setString(7, entity.getStage());
+            stmt.setFloat(8, entity.getTicketPrice());
             int rows = stmt.executeUpdate();
             if (rows == 0) {
                 logger.log(Level.WARN, "No rows affected");
@@ -115,7 +116,7 @@ public class GameDBRepository implements GameRepository {
     @Override
     public Game update(Game entity) {
         logger.traceEntry();
-        String query = "UPDATE GAMES SET team1 = ?, team2 = ?, team_1_score = ?, team_2_score = ?, competition = ?, capactity = ?, stage = ?";
+        String query = "UPDATE GAMES SET team1 = ?, team2 = ?, team_1_score = ?, team_2_score = ?, competition = ?, capacity = ?, stage = ?, price = ? WHERE id = ?";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(query)) {
             stmt.setString(1, entity.getTeam1());
             stmt.setString(2, entity.getTeam2());
@@ -124,6 +125,8 @@ public class GameDBRepository implements GameRepository {
             stmt.setString(5, entity.getCompetition());
             stmt.setInt(6, entity.getCapacity());
             stmt.setString(7, entity.getStage());
+            stmt.setFloat(8, entity.getTicketPrice());
+            stmt.setInt(9, entity.getId());
             int rowsAffected = stmt.executeUpdate();
             logger.traceExit();
             return entity;
@@ -143,8 +146,9 @@ public class GameDBRepository implements GameRepository {
             String competition = resultSet.getString("competition");
             int capacity = resultSet.getInt("capacity");
             String stage = resultSet.getString("stage");
+            Float ticketPrice = resultSet.getFloat("price");
             logger.traceExit();
-            return new Game(id, team1, team2, team1Score, team2Score, competition, capacity, stage);
+            return new Game(id, team1, team2, team1Score, team2Score, competition, capacity, stage, ticketPrice);
         } catch (Exception e) {
             logger.error(e);
             throw new RuntimeException(e);
