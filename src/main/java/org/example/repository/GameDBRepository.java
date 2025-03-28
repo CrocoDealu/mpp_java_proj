@@ -69,7 +69,7 @@ public class GameDBRepository implements GameRepository {
     @Override
     public Game save(Game entity) {
         logger.traceEntry();
-        String query = "INSERT INTO Games (team1, team2, team_1_score, team_2_score, competition, capactity, stage, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO Games (team1, team2, team_1_score, team_2_score, competition, capacity, stage, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = jdbcUtils.getConnection().prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, entity.getTeam1());
             stmt.setString(2, entity.getTeam2());

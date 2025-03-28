@@ -11,5 +11,7 @@ public class Entity<ID> {
         return id;
     }
 
-    public void setId(ID id) {}
+    public void setId(ID id) {
+        this.id = id;
+    }
 }
