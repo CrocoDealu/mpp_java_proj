@@ -28,7 +28,6 @@
                </padding>
             </VBox>
             <Button fx:id="login" mnemonicParsing="false" onAction="#onLogin" prefHeight="27.0" prefWidth="64.5" text="Login" />
-            <Button mnemonicParsing="false" text="Sign Up" />
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
