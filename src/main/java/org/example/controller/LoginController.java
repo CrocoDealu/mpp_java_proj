@@ -47,7 +47,6 @@ public class LoginController {
             clearFields();
             usernameErrorLabel.setText("Username not found");
         }
-
     }
 
     private void openMainPannel(Cashier cashier) {
