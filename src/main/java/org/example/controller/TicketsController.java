@@ -32,6 +32,10 @@ public class TicketsController {
 
     private ObservableList<Ticket> ticketList = FXCollections.observableArrayList();
 
+    public TicketsController(TicketService ticketService) {
+        this.ticketService = ticketService;
+    }
+
     public void initialize() {
         clientNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCustomerName()));
         clientAddressColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCustomerAddress()));
@@ -55,12 +59,4 @@ public class TicketsController {
             ticketList.add(ticket);
         }
     }
-
-    public void setServices(GameService gameService, CashierService cashierService, TicketService ticketService)
-    {
-        this.gameService = gameService;
-        this.cashierService = cashierService;
-        this.ticketService = ticketService;
-    }
-
 }

@@ -12,6 +12,7 @@ import org.example.service.CashierService;
 import org.example.service.GameService;
 import org.example.service.TicketService;
 import javafx.scene.Parent;
+import org.example.utils.SpringFXMLLoader;
 
 import java.io.File;
 import java.util.Optional;
@@ -27,9 +28,16 @@ public class LoginController {
     private CashierService cashierService;
     private GameService gameService;
     private TicketService ticketService;
+    private final SpringFXMLLoader fxmlLoader;
 
     public Button login;
 
+    public LoginController(GameService gameService, CashierService cashierService, TicketService ticketService, SpringFXMLLoader fxmlLoader) {
+        this.cashierService = cashierService;
+        this.gameService = gameService;
+        this.ticketService = ticketService;
+        this.fxmlLoader = fxmlLoader;
+    }
 
     public void onLogin(ActionEvent actionEvent) {
         String username = this.username.getText();
@@ -51,8 +59,8 @@ public class LoginController {
 
     private void openMainPannel(Cashier cashier) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/xmlFiles/main_view.fxml"));
-            Parent root = fxmlLoader.load();
+            SpringFXMLLoader.ViewControllerPair<MainController> controllerParentPair = this.fxmlLoader.loadWithController("/xmlFiles/main_view.fxml");
+            Parent root = controllerParentPair.getView();
             Scene mainScene = new Scene(root);
 
             Stage mainStage = new Stage();
@@ -61,8 +69,7 @@ public class LoginController {
 
             mainStage.show();
 
-            MainController mainController = fxmlLoader.getController();
-            mainController.setServices(gameService, cashierService, ticketService);
+            MainController mainController = controllerParentPair.getController();
             mainController.loadMatches();
             mainController.setCashier(cashier);
             Stage currentStage = (Stage) username.getScene().getWindow();

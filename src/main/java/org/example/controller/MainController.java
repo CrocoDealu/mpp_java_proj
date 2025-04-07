@@ -19,6 +19,7 @@ import org.example.model.Ticket;
 import org.example.service.CashierService;
 import org.example.service.GameService;
 import org.example.service.TicketService;
+import org.example.utils.SpringFXMLLoader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,10 +40,17 @@ public class MainController {
     private TicketService ticketService;
     private CashierService cashierService;
     private Cashier loggedCashier;
-
+    private SpringFXMLLoader loader;
     private Game selectedGame;
 
     private final List<Stage> openedStages = new ArrayList<>();
+
+    public MainController(GameService gameService, CashierService cashierService, TicketService ticketService, SpringFXMLLoader loader) {
+        this.gameService = gameService;
+        this.cashierService = cashierService;
+        this.ticketService = ticketService;
+        this.loader = loader;
+    }
 
     public void initialize() {
         matchList.setCellFactory(param -> new ListCell<Game>() {
@@ -87,12 +95,6 @@ public class MainController {
         });
         noOfSeats.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10, 0));
         sellButton.setDisable(true);
-    }
-
-    public void setServices(GameService gameService, CashierService cashierService, TicketService ticketService) {
-        this.gameService = gameService;
-        this.cashierService = cashierService;
-        this.ticketService = ticketService;
     }
 
     public void loadMatches() {
@@ -167,11 +169,10 @@ public class MainController {
 
     public void onViewTicketsPressed(ActionEvent actionEvent) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/xmlFiles/tickets_view.fxml"));
-            Parent root = fxmlLoader.load();
+            SpringFXMLLoader.ViewControllerPair<TicketsController> controllerViewPair =  loader.loadWithController("/xmlFiles/tickets_view.fxml");
+            Parent root = controllerViewPair.getView();
             Scene mainScene = new Scene(root);
-            TicketsController controller = fxmlLoader.getController();
-            controller.setServices(gameService, cashierService, ticketService);
+            TicketsController controller = controllerViewPair.getController();
             controller.loadTickets(null);
             Stage mainStage = new Stage();
             mainStage.setTitle("Tickets");
@@ -187,16 +188,12 @@ public class MainController {
     public void onLogOutPressed(ActionEvent actionEvent) {
         try {
             closeAllOpenedStages();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/login.fxml"));
-            AnchorPane root = loader.load();
+            Parent root = loader.load("/xmlFiles/login.fxml");
 
             Scene scene = new Scene(root);
             Stage primaryStage = new Stage();
             primaryStage.setTitle("Login");
             primaryStage.setScene(scene);
-
-            LoginController loginController = loader.getController();
-            loginController.setServices(gameService, cashierService, ticketService);
 
             primaryStage.setResizable(false);
 
