@@ -32,8 +32,10 @@ public class Main{
                 System.out.println("New client connected");
                 BackendClient backendClient = new BackendClient(socket);
                 RequestHandler requestHandler = new RequestHandler(springContext.getBean(SportsTicketManagementService.class));
-                String request = backendClient.receive();
-                requestHandler.handleRequest(request, backendClient);
+                while (!backendClient.isClosed()) {
+                    String request = backendClient.receive();
+                    requestHandler.handleRequest(request, backendClient);
+                }
             }
         } catch (IOException e) {
             System.out.println("Server exception: " + e.getMessage());

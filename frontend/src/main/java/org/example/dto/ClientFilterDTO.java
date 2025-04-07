@@ -4,6 +4,9 @@ public class ClientFilterDTO {
     private String name;
     private String address;
 
+    public ClientFilterDTO() {
+    }
+
     public ClientFilterDTO(String name, String address) {
         String na = null;
         String ad = null;

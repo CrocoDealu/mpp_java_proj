@@ -5,6 +5,9 @@ public class CashierDTO {
     private String name;
     private String username;
 
+    public CashierDTO() {
+    }
+
     public CashierDTO(int id, String name, String username) {
         this.id = id;
         this.name = name;

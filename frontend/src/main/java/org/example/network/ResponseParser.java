@@ -2,6 +2,7 @@ package org.example.network;
 
 import javafx.util.Pair;
 import org.example.dto.CashierDTO;
+import org.example.dto.ClientFilterDTO;
 import org.example.dto.GameDTO;
 import org.example.dto.TicketDTO;
 import org.json.JSONObject;
@@ -53,20 +54,19 @@ public class ResponseParser {
         return null;
     }
 
-    private Pair<Optional<CashierDTO>, JSONObject> handleLogin(JSONObject jsonObject) {
+    private Pair<CashierDTO, String> handleLogin(JSONObject jsonObject) {
         JSONObject jsonPayload = jsonObject.getJSONObject("payload");
-        int id = jsonPayload.getInt("id");
-        if (id < 0) {
-            return new Pair<>(Optional.empty(), jsonPayload);
+        if (jsonPayload.has("reason")) {
+            if (jsonPayload.getString("reason").equals("USER_NOT_FOUND")) {
+                return new Pair<>(new CashierDTO(), "USER_NOT_FOUND");
+            } else if (jsonPayload.getString("reason").equals("INCORRECT_PASSWORD")) {
+                return new Pair<>(new CashierDTO(), "INCORRECT_PASSWORD");
+            }
         }
+        int id = jsonPayload.getInt("id");
         String username = jsonPayload.getString("username");
         String name = jsonPayload.getString("name");
-        System.out.println(jsonPayload);
-        String token = jsonPayload.getString("token");
-        if (token.isEmpty()) {
-            return new Pair<>(Optional.empty(), new JSONObject());
-        }
         CashierDTO cashierDTO = new CashierDTO(id, username, name);
-        return new Pair<>(Optional.of(cashierDTO), jsonPayload);
+        return new Pair<>(cashierDTO, "");
     }
 }

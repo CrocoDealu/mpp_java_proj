@@ -35,6 +35,9 @@ public class LoginController {
     }
 
     public void onLogin(ActionEvent actionEvent) {
+        // Clear error messages before making a new login attempt
+        clearFields();
+        
         String username = this.username.getText();
         String password = this.password.getText();
 
@@ -45,27 +48,22 @@ public class LoginController {
         request.put("type", "LOGIN");
         request.put("payload", requestPayload);
         FrontendClient frontendClient = ConnectionManager.getClient();
+        System.out.println("Sending request: ");
+        System.out.println("Is client null " + frontendClient.isClosed());
         frontendClient.send(request.toString());
         try {
             String response = frontendClient.receive();
+            System.out.println("Received response: " + response);
             Object responseHandled = responseParser.handleResponse(response);
             if (responseHandled instanceof Pair<?,?> responsePair) {
-                JSONObject responsePayload = (JSONObject) responsePair.getValue();
-
-                Optional<CashierDTO> optionalCashier = (Optional<CashierDTO>) responsePair.getKey();
-
-                if (optionalCashier.isPresent()) {
-
-                    CashierDTO cashier = optionalCashier.get();
-                    if (responsePayload.has("token")) {
-                        openMainPannel(cashier);
-                    } else {
-                        clearFields();
-                        passwordErrorLabel.setText("Wrong password!");
-                    }
-                } else {
-                    clearFields();
+                String reason = (String) responsePair.getValue();
+                CashierDTO cashier = (CashierDTO) responsePair.getKey();
+                if (reason.equals("USER_NOT_FOUND")) {
                     usernameErrorLabel.setText("Username not found");
+                } else if (reason.equals("INCORRECT_PASSWORD")) {
+                    passwordErrorLabel.setText("Wrong password!");
+                } else {
+                    openMainPannel(cashier);
                 }
             }
         } catch (Exception e) {

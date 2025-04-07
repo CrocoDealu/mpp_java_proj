@@ -40,4 +40,8 @@ public class BackendClient {
             System.out.println("Error closing resources: " + e.getMessage());
         }
     }
+
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
 }
