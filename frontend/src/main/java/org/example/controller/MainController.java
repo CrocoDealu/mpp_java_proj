@@ -15,8 +15,9 @@ import javafx.stage.Stage;
 import org.example.dto.CashierDTO;
 import org.example.dto.GameDTO;
 import org.example.dto.TicketDTO;
-import org.example.network.BackendClient;
-import org.example.network.ResponseHandler;
+import org.example.network.FrontendClient;
+import org.example.network.ConnectionManager;
+import org.example.network.ResponseParser;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -37,12 +38,10 @@ public class MainController {
     private CashierDTO loggedCashier;
     private GameDTO selectedGame;
 
-    private ResponseHandler responseHandler;
-    private BackendClient backendClient;
+    private ResponseParser responseParser;
 
-    public MainController(ResponseHandler responseHandler, BackendClient backendClient) {
-        this.responseHandler = responseHandler;
-        this.backendClient = backendClient;
+    public MainController(ResponseParser responseParser) {
+        this.responseParser = responseParser;
     }
 
     public MainController() {
@@ -97,13 +96,14 @@ public class MainController {
         matchList.getItems().clear();
         JSONObject request = new JSONObject();
         request.append("type", "GET_MATCHES");
-        backendClient.send(request.toString());
+        FrontendClient frontendClient = ConnectionManager.getClient();
+        frontendClient.send(request.toString());
         try {
-            String jsonResponse = backendClient.receive();
+            String jsonResponse = frontendClient.receive();
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
-            Object response = responseHandler.handleResponse(jsonResponse);
+            Object response = responseParser.handleResponse(jsonResponse);
             if (response instanceof Iterable<?>) {
                 Iterable<GameDTO> games = (Iterable<GameDTO>) response;
                 ObservableList<GameDTO> gameObservableList = FXCollections.observableArrayList();
@@ -199,6 +199,7 @@ public class MainController {
 
     public void onLogOutPressed(ActionEvent actionEvent) {
         try {
+            endSession();
             closeAllOpenedStages();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/login.fxml"));
             Parent root = loader.load();
@@ -208,12 +209,29 @@ public class MainController {
             primaryStage.setTitle("Login");
             primaryStage.setScene(scene);
 
+            LoginController loginController = loader.getController();
+            loginController.setResponseHandler(new ResponseParser());
+
             primaryStage.setResizable(false);
 
             primaryStage.show();
 
+
             Stage currentStage = (Stage) clientName.getScene().getWindow();
             currentStage.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void endSession() {
+        FrontendClient frontendClient = ConnectionManager.getClient();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", "LOGOUT");
+        frontendClient.send(jsonObject.toString());
+        try {
+            frontendClient.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -225,10 +243,7 @@ public class MainController {
         }
     }
 
-    public void setResponseHandler(ResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
-    }
-    public void setBackendClient(BackendClient backendClient) {
-        this.backendClient = backendClient;
+    public void setResponseHandler(ResponseParser responseParser) {
+        this.responseParser = responseParser;
     }
 }

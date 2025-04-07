@@ -11,8 +11,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import org.example.dto.ClientFilterDTO;
 import org.example.dto.TicketDTO;
-import org.example.network.BackendClient;
-import org.example.network.ResponseHandler;
+import org.example.network.FrontendClient;
+import org.example.network.ResponseParser;
 import org.json.JSONObject;
 
 
@@ -27,15 +27,15 @@ public class TicketsController {
     public TableColumn<TicketDTO, Integer> seatsColumn;
     private ObservableList<TicketDTO> ticketList = FXCollections.observableArrayList();
 
-    private ResponseHandler responseHandler;
-    private BackendClient backendClient;
+    private ResponseParser responseParser;
+    private FrontendClient frontendClient;
 
     public TicketsController() {
     }
 
-    public TicketsController(ResponseHandler responseHandler, BackendClient backendClient) {
-        this.responseHandler = responseHandler;
-        this.backendClient = backendClient;
+    public TicketsController(ResponseParser responseParser, FrontendClient frontendClient) {
+        this.responseParser = responseParser;
+        this.frontendClient = frontendClient;
     }
 
     public void initialize() {
@@ -56,13 +56,13 @@ public class TicketsController {
     public void loadTickets(ClientFilterDTO clientFilterDTO) {
         JSONObject request = new JSONObject();
         request.append("type", "GET_TICKETS");
-        backendClient.send(request.toString());
+        frontendClient.send(request.toString());
         try {
-            String jsonResponse = backendClient.receive();
+            String jsonResponse = frontendClient.receive();
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
-            Object response = responseHandler.handleResponse(jsonResponse);
+            Object response = responseParser.handleResponse(jsonResponse);
             if (response instanceof Iterable<?>) {
                 Iterable<TicketDTO> itTickets = (Iterable<TicketDTO>) response;
                 ticketList.clear();
@@ -77,10 +77,10 @@ public class TicketsController {
         }
     }
 
-    public void setResponseHandler(ResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
+    public void setResponseHandler(ResponseParser responseParser) {
+        this.responseParser = responseParser;
     }
-    public void setBackendClient(BackendClient backendClient) {
-        this.backendClient = backendClient;
+    public void setBackendClient(FrontendClient frontendClient) {
+        this.frontendClient = frontendClient;
     }
 }

@@ -11,8 +11,8 @@ public class BackendClient {
     private BufferedReader in;
     private PrintWriter out;
 
-    public BackendClient(String host, int port) throws IOException {
-        socket = new Socket(host, port);
+    public BackendClient(Socket socket) throws IOException {
+        this.socket = socket;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
     }
@@ -26,6 +26,18 @@ public class BackendClient {
     }
 
     public void close() throws IOException {
-        socket.close();
+        try {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            System.out.println("Error closing resources: " + e.getMessage());
+        }
     }
 }

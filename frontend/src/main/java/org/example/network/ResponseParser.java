@@ -8,12 +8,12 @@ import org.json.JSONObject;
 
 import java.util.Optional;
 
-public class ResponseHandler {
+public class ResponseParser {
     public Object handleResponse(String response) {
         JSONObject jsonObject = new JSONObject(response);
         String type = jsonObject.getString("type");
         switch (type) {
-            case "LOGIN":
+            case "LOGIN_RESPONSE":
                 System.out.println("Login");
                 return handleLogin(jsonObject);
             case "SAVE_TICKET":
@@ -54,6 +54,19 @@ public class ResponseHandler {
     }
 
     private Pair<Optional<CashierDTO>, JSONObject> handleLogin(JSONObject jsonObject) {
-        return null;
+        JSONObject jsonPayload = jsonObject.getJSONObject("payload");
+        int id = jsonPayload.getInt("id");
+        if (id < 0) {
+            return new Pair<>(Optional.empty(), jsonPayload);
+        }
+        String username = jsonPayload.getString("username");
+        String name = jsonPayload.getString("name");
+        System.out.println(jsonPayload);
+        String token = jsonPayload.getString("token");
+        if (token.isEmpty()) {
+            return new Pair<>(Optional.empty(), new JSONObject());
+        }
+        CashierDTO cashierDTO = new CashierDTO(id, username, name);
+        return new Pair<>(Optional.of(cashierDTO), jsonPayload);
     }
 }

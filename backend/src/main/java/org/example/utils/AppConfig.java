@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileReader;
+import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
@@ -17,7 +18,7 @@ public class AppConfig {
     public Properties properties() {
         Properties properties = new Properties();
         try {
-            properties.load(new FileReader("config.properties"));
+            properties.load(new FileReader(Objects.requireNonNull(getClass().getClassLoader().getResource("config.properties")).getFile()));
         } catch (Exception e) {
             e.printStackTrace();
         }

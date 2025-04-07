@@ -10,8 +10,9 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.example.dto.CashierDTO;
-import org.example.network.BackendClient;
-import org.example.network.ResponseHandler;
+import org.example.network.FrontendClient;
+import org.example.network.ConnectionManager;
+import org.example.network.ResponseParser;
 import org.json.JSONObject;
 
 import java.util.Optional;
@@ -27,12 +28,10 @@ public class LoginController {
     public Label passwordErrorLabel;
 
     public Button login;
-    private ResponseHandler responseHandler;
-    private BackendClient backendClient;
+    private ResponseParser responseParser;
 
-    public LoginController(ResponseHandler responseHandler, BackendClient backendClient) {
-        this.responseHandler = responseHandler;
-        this.backendClient = backendClient;
+    public LoginController(ResponseParser responseParser) {
+        this.responseParser = responseParser;
     }
 
     public void onLogin(ActionEvent actionEvent) {
@@ -41,19 +40,22 @@ public class LoginController {
 
         JSONObject request = new JSONObject();
         JSONObject requestPayload = new JSONObject();
-        requestPayload.append("username", username);
-        requestPayload.append("password", password);
-        request.append("type", "LOGIN");
-        request.append("payload", requestPayload);
-        backendClient.send(request.toString());
+        requestPayload.put("username", username);
+        requestPayload.put("password", password);
+        request.put("type", "LOGIN");
+        request.put("payload", requestPayload);
+        FrontendClient frontendClient = ConnectionManager.getClient();
+        frontendClient.send(request.toString());
         try {
-            String response = backendClient.receive();
-            Object responseHandled = responseHandler.handleResponse(response);
+            String response = frontendClient.receive();
+            Object responseHandled = responseParser.handleResponse(response);
             if (responseHandled instanceof Pair<?,?> responsePair) {
-                JSONObject responseJson = (JSONObject) responsePair.getValue();
-                JSONObject responsePayload = (JSONObject) responseJson.get("payload");
+                JSONObject responsePayload = (JSONObject) responsePair.getValue();
+
                 Optional<CashierDTO> optionalCashier = (Optional<CashierDTO>) responsePair.getKey();
+
                 if (optionalCashier.isPresent()) {
+
                     CashierDTO cashier = optionalCashier.get();
                     if (responsePayload.has("token")) {
                         openMainPannel(cashier);
@@ -74,7 +76,7 @@ public class LoginController {
 
     private void openMainPannel(CashierDTO cashier) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main_view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/main_view.fxml"));
             Parent root = loader.load();
             Scene mainScene = new Scene(root);
 
@@ -85,7 +87,7 @@ public class LoginController {
             mainStage.show();
 
             MainController mainController = loader.getController();
-            mainController.loadMatches();
+//            mainController.loadMatches();
             mainController.setCashier(cashier);
             Stage currentStage = (Stage) username.getScene().getWindow();
 
@@ -100,10 +102,7 @@ public class LoginController {
         passwordErrorLabel.setText("");
     }
 
-    public void setResponseHandler(ResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
-    }
-    public void setBackendClient(BackendClient backendClient) {
-        this.backendClient = backendClient;
+    public void setResponseHandler(ResponseParser responseParser) {
+        this.responseParser = responseParser;
     }
 }

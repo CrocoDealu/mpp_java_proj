@@ -3,18 +3,12 @@ package org.example;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import org.example.controller.LoginController;
 import javafx.application.Application;
-import org.example.network.BackendClient;
-import org.example.network.BackendConnectionManager;
-import org.example.network.ResponseHandler;
+import org.example.network.ResponseParser;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Objects;
-import java.util.Properties;
 
 public class Main extends Application{
 
@@ -25,8 +19,7 @@ public class Main extends Application{
         try {
             Parent root = loader.load();
             LoginController loginController = loader.getController();
-            loginController.setBackendClient(BackendConnectionManager.getClient());
-            loginController.setResponseHandler(new ResponseHandler());
+            loginController.setResponseHandler(new ResponseParser());
             Scene scene = new Scene(root);
             primaryStage.setTitle("Login");
             primaryStage.setScene(scene);
