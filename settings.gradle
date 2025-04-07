@@ -1,2 +1,4 @@
 rootProject.name = 'Proiect1'
+include 'backend'
+include 'frontend'
 
