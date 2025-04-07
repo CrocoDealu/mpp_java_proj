@@ -95,11 +95,12 @@ public class MainController {
     public void loadMatches() {
         matchList.getItems().clear();
         JSONObject request = new JSONObject();
-        request.append("type", "GET_MATCHES");
+        request.put("type", "GET_GAMES");
         FrontendClient frontendClient = ConnectionManager.getClient();
         frontendClient.send(request.toString());
         try {
             String jsonResponse = frontendClient.receive();
+            System.out.println(jsonResponse);
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
@@ -181,10 +182,11 @@ public class MainController {
 
     public void onViewTicketsPressed(ActionEvent actionEvent) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/viewTickets.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/tickets_view.fxml"));
             Parent root = loader.load();
             Scene mainScene = new Scene(root);
             TicketsController controller = loader.getController();
+            controller.setResponseHandler(responseParser);
             controller.loadTickets(null);
             Stage mainStage = new Stage();
             mainStage.setTitle("Tickets");
@@ -210,7 +212,7 @@ public class MainController {
             primaryStage.setScene(scene);
 
             LoginController loginController = loader.getController();
-            loginController.setResponseHandler(new ResponseParser());
+            loginController.setResponseHandler(responseParser);
 
             primaryStage.setResizable(false);
 

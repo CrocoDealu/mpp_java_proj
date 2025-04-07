@@ -12,6 +12,9 @@ public class GameDTO {
     private float ticketPrice;
 
 
+    public GameDTO() {
+    }
+
     public GameDTO(Integer id, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage, float ticketPrice) {
         this.id = id;
         this.team1 = team1;

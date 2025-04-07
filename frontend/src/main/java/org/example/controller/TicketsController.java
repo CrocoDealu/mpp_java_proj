@@ -11,6 +11,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import org.example.dto.ClientFilterDTO;
 import org.example.dto.TicketDTO;
+import org.example.network.ConnectionManager;
 import org.example.network.FrontendClient;
 import org.example.network.ResponseParser;
 import org.json.JSONObject;
@@ -28,14 +29,12 @@ public class TicketsController {
     private ObservableList<TicketDTO> ticketList = FXCollections.observableArrayList();
 
     private ResponseParser responseParser;
-    private FrontendClient frontendClient;
 
     public TicketsController() {
     }
 
-    public TicketsController(ResponseParser responseParser, FrontendClient frontendClient) {
+    public TicketsController(ResponseParser responseParser) {
         this.responseParser = responseParser;
-        this.frontendClient = frontendClient;
     }
 
     public void initialize() {
@@ -55,7 +54,14 @@ public class TicketsController {
 
     public void loadTickets(ClientFilterDTO clientFilterDTO) {
         JSONObject request = new JSONObject();
-        request.append("type", "GET_TICKETS");
+        request.put("type", "GET_TICKETS");
+        JSONObject params = new JSONObject();
+        if (clientFilterDTO != null) {
+            params.put("username", clientFilterDTO.getName());
+            params.put("address", clientFilterDTO.getAddress());
+        }
+        request.put("payload", params);
+        FrontendClient frontendClient = ConnectionManager.getClient();
         frontendClient.send(request.toString());
         try {
             String jsonResponse = frontendClient.receive();
@@ -79,8 +85,5 @@ public class TicketsController {
 
     public void setResponseHandler(ResponseParser responseParser) {
         this.responseParser = responseParser;
-    }
-    public void setBackendClient(FrontendClient frontendClient) {
-        this.frontendClient = frontendClient;
     }
 }

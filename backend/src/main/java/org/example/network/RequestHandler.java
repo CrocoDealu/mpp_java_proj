@@ -2,6 +2,9 @@ package org.example.network;
 
 import ch.qos.logback.core.joran.sanity.Pair;
 import ch.qos.logback.core.net.server.Client;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.dto.ClientFilterDTO;
 import org.example.model.Cashier;
 import org.example.model.Game;
 import org.example.model.Ticket;
@@ -9,6 +12,8 @@ import org.example.service.SportsTicketManagementService;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class RequestHandler {
@@ -19,34 +24,51 @@ public class RequestHandler {
     }
 
     public void handleRequest(String request, BackendClient client) throws IOException {
-        JSONObject jsonObject = new JSONObject(request);
-        String type = jsonObject.getString("type");
-        switch (type) {
-            case "LOGIN":
-                handleLogin(jsonObject.getJSONObject("payload"), client);
-                break;
-            case "SAVE_TICKET":
-                handleSaveTicket(jsonObject.getJSONObject("payload"), client);
-                break;
-            case "UPDATE_GAME":
-                handleUpdateGame(jsonObject.getJSONObject("payload"), client);
-                break;
-            case "GET_GAMES":
-                handleGetGames(client);
-                break;
-            case "GET_TICKETS":
-                handleGetTickets(client);
-                break;
-            case "ERROR":
-                handleError();
-                break;
-            case "LOGOUT":
-                handleLogout(client);
-                break;
-            default:
-                System.out.println("Unknown response type: " + type);
-                break;
+        try {
+            JSONObject jsonObject = new JSONObject(request);
+            String type = jsonObject.getString("type");
+            switch (type) {
+                case "LOGIN":
+                    handleLogin(jsonObject.getJSONObject("payload"), client);
+                    break;
+                case "SAVE_TICKET":
+                    handleSaveTicket(jsonObject.getJSONObject("payload"), client);
+                    break;
+                case "GET_GAMES":
+                    handleGetGames(client);
+                    break;
+                case "GET_TICKETS":
+                    ClientFilterDTO filter = null;
+                    if (jsonObject.has("payload")) {
+                        filter = parseFilter(jsonObject.getJSONObject("payload"));
+                    }
+                    handleGetTickets(client, filter);
+                    break;
+                case "ERROR":
+                    handleError();
+                    break;
+                case "LOGOUT":
+                    handleLogout(client);
+                    break;
+                default:
+                    System.out.println("Unknown response type: " + type);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private ClientFilterDTO parseFilter(JSONObject jsonObject) {
+        String username = "", address = "";
+        if (jsonObject.has("username")) {
+            username = jsonObject.getString("username");
+        }
+        if (jsonObject.has("address")) {
+            address = jsonObject.getString("address");
+        }
+
+        return new ClientFilterDTO(username, address);
     }
 
     private void handleLogin(JSONObject jsonPayload, BackendClient client) throws IOException {
@@ -113,22 +135,37 @@ public class RequestHandler {
 
     private void handleSaveTicket(JSONObject jsonPayload, BackendClient client) {
         System.out.println("Saving ticket");
-        // Implement the logic for saving a ticket
+        
     }
 
-    private void handleUpdateGame(JSONObject jsonPayload, BackendClient client) {
-        System.out.println("Updating game");
-        // Implement the logic for updating a game
+    private void handleGetGames(BackendClient client) throws IOException {
+        Iterable<Game> games = service.getAllGames();
+        List<Game> gameList = new ArrayList<>();
+        games.forEach(gameList::add);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(gameList);
+        JSONObject response = new JSONObject();
+        response.put("type", "GET_GAMES_RESPONSE");
+        JSONObject payload = new JSONObject();
+        payload.put("result", jsonString);
+        response.put("payload", payload);
+        client.send(response.toString());
     }
 
-    private void handleGetGames(BackendClient client) {
-        System.out.println("Getting games");
-        // Implement the logic for getting games
-    }
-
-    private void handleGetTickets(BackendClient client) {
-        System.out.println("Getting tickets");
-        // Implement the logic for getting tickets
+    private void handleGetTickets(BackendClient client, ClientFilterDTO filter) throws IOException {
+        Iterable<Ticket> tickets = service.getTicketsForClient(filter);
+        List<Ticket> ticketList = new ArrayList<>();
+        for (Ticket ticket : tickets) {
+            ticketList.add(ticket);
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(ticketList);
+        JSONObject response = new JSONObject();
+        response.put("type", "GET_TICKETS_RESPONSE");
+        JSONObject payload = new JSONObject();
+        payload.put("result", jsonString);
+        response.put("payload", payload);
+        client.send(response.toString());
     }
 
     private void handleError() {

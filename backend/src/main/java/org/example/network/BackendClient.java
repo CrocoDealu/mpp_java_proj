@@ -22,7 +22,15 @@ public class BackendClient {
     }
 
     public String receive() throws IOException {
-        return in.readLine();
+        try {
+            if (socket.isClosed() || !socket.isConnected()) {
+                return null;
+            }
+            return in.readLine();
+        } catch (IOException e) {
+            close();
+            return null;
+        }
     }
 
     public void close() throws IOException {

@@ -33,8 +33,17 @@ public class Main{
                 BackendClient backendClient = new BackendClient(socket);
                 RequestHandler requestHandler = new RequestHandler(springContext.getBean(SportsTicketManagementService.class));
                 while (!backendClient.isClosed()) {
-                    String request = backendClient.receive();
-                    requestHandler.handleRequest(request, backendClient);
+                    try {
+                        String request = backendClient.receive();
+                        if (request == null) {
+                            System.out.println("Client disconnected");
+                            break;
+                        }
+                        requestHandler.handleRequest(request, backendClient);
+                    } catch (IOException e) {
+                        System.out.println("Client connection lost: " + e.getMessage());
+                        break;
+                    }
                 }
             }
         } catch (IOException e) {

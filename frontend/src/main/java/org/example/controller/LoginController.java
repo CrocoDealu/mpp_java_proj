@@ -48,12 +48,9 @@ public class LoginController {
         request.put("type", "LOGIN");
         request.put("payload", requestPayload);
         FrontendClient frontendClient = ConnectionManager.getClient();
-        System.out.println("Sending request: ");
-        System.out.println("Is client null " + frontendClient.isClosed());
         frontendClient.send(request.toString());
         try {
             String response = frontendClient.receive();
-            System.out.println("Received response: " + response);
             Object responseHandled = responseParser.handleResponse(response);
             if (responseHandled instanceof Pair<?,?> responsePair) {
                 String reason = (String) responsePair.getValue();
@@ -85,7 +82,8 @@ public class LoginController {
             mainStage.show();
 
             MainController mainController = loader.getController();
-//            mainController.loadMatches();
+            mainController.setResponseHandler(responseParser);
+            mainController.loadMatches();
             mainController.setCashier(cashier);
             Stage currentStage = (Stage) username.getScene().getWindow();
 

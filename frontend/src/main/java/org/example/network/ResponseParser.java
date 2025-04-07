@@ -1,5 +1,7 @@
 package org.example.network;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.util.Pair;
 import org.example.dto.CashierDTO;
 import org.example.dto.ClientFilterDTO;
@@ -7,6 +9,9 @@ import org.example.dto.GameDTO;
 import org.example.dto.TicketDTO;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class ResponseParser {
@@ -15,22 +20,16 @@ public class ResponseParser {
         String type = jsonObject.getString("type");
         switch (type) {
             case "LOGIN_RESPONSE":
-                System.out.println("Login");
                 return handleLogin(jsonObject);
             case "SAVE_TICKET":
-                System.out.println("Saving ticket");
                 return handleSaved(jsonObject);
             case "UPDATE_GAME":
-                System.out.println("Updating game");
                 return handleUpdated(jsonObject);
-            case "GET_GAMES":
-                System.out.println("Getting games");
-                return handleGetGames();
-            case "GET_TICKETS":
-                System.out.println("Getting tickets");
-                return handleGetTickets();
+            case "GET_GAMES_RESPONSE":
+                return handleGetGames(jsonObject);
+            case "GET_TICKETS_RESPONSE":
+                return handleGetTickets(jsonObject);
             case "ERROR":
-                System.out.println("Oops got an error");
                 return "Error: " + jsonObject.getString("message");
             default:
                 System.out.println("Unknown response type: " + type);
@@ -38,12 +37,28 @@ public class ResponseParser {
         }
     }
 
-    private Iterable<TicketDTO> handleGetTickets() {
+    private Iterable<TicketDTO> handleGetTickets(JSONObject response) {
+        JSONObject jsonObject = response.getJSONObject("payload");
+        String result = jsonObject.getString("result");
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(result, new TypeReference<List<TicketDTO>>() {});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
-    private Iterable<GameDTO> handleGetGames() {
-        return null;
+    private Iterable<GameDTO> handleGetGames(JSONObject response) {
+        JSONObject jsonObject = response.getJSONObject("payload");
+        String result = jsonObject.getString("result");
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(result, new TypeReference<List<GameDTO>>() {});
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 
     private String handleUpdated(JSONObject jsonObject) {

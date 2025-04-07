@@ -1,10 +1,14 @@
 package org.example.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Objects;
 
 public class Cashier extends Entity<Integer> {
     private String name;
     private String username;
+
+    @JsonIgnore
     private String password;
     public Cashier(int id, String name, String username, String password) {
         super(id);
