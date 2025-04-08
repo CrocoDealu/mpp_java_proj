@@ -83,6 +83,7 @@ public class LoginController {
             mainStage.setScene(mainScene);
             mainStage.show();
             MainController mainController = loader.getController();
+            mainController.initializeResources();
             mainController.loadMatches();
             mainController.setCashier(cashier);
             mainStage.setOnCloseRequest(event -> {

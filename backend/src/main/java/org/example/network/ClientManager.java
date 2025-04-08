@@ -18,7 +18,6 @@ public class ClientManager {
     public static void broadcastChange(String changeNotification) {
         connectedClients.forEach(client -> {
             try {
-                System.out.println("Sending message " + changeNotification + " to client " + client);
                 client.send(changeNotification);
             } catch (Exception e) {
                 System.out.println("Failed to notify client: " + e.getMessage());

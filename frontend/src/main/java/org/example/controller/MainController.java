@@ -87,6 +87,12 @@ public class MainController implements Listener {
         sellButton.setDisable(true);
     }
 
+    public void initializeResources() {
+        ConnectionManager.getDispatcher().onEvent("GAMES", message-> {
+            loadMatches();
+        });
+    }
+
     public void loadMatches() {
         matchList.getItems().clear();
         JSONObject request = new JSONObject();
