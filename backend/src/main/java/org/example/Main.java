@@ -3,21 +3,13 @@ package org.example;
 import org.example.network.BackendClient;
 import org.example.network.ClientManager;
 import org.example.network.RequestHandler;
-import org.example.repository.GameDBRepository;
 import org.example.service.SportsTicketManagementService;
 import org.example.utils.AppConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
-import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
