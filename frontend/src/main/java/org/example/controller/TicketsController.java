@@ -14,6 +14,7 @@ import org.example.dto.ClientFilterDTO;
 import org.example.dto.TicketDTO;
 import org.example.network.ConnectionManager;
 import org.example.network.FrontendClient;
+import org.example.network.JSONDispatcher;
 import org.example.network.ResponseParser;
 import org.example.util.Listener;
 import org.json.JSONObject;
@@ -41,6 +42,12 @@ public class TicketsController implements Listener {
         ticketsTable.setItems(ticketList);
     }
 
+    public void initializeResources() {
+        ConnectionManager.getDispatcher().onEvent("TICKETS", message-> {
+            loadTickets(null);
+        });
+    }
+
     public void onSearchPressed(ActionEvent actionEvent) {
         String clientName = nameField.getText();
         String clientAddress = addressField.getText();
@@ -51,6 +58,7 @@ public class TicketsController implements Listener {
     public void loadTickets(ClientFilterDTO clientFilterDTO) {
         JSONObject request = new JSONObject();
         request.put("type", "GET_TICKETS");
+        request.put("messageId", ConnectionManager.getNextMessageId());
         JSONObject params = new JSONObject();
         if (clientFilterDTO != null) {
             params.put("username", clientFilterDTO.getName());
@@ -60,22 +68,23 @@ public class TicketsController implements Listener {
         FrontendClient frontendClient = ConnectionManager.getClient();
 
         try {
-            System.out.println("Getting tickets");
-            String jsonResponse = frontendClient.sendAndWaitResponse(request);
-            System.out.println("Got tickets: " + jsonResponse);
-            if (jsonResponse == null) {
-                throw new RuntimeException("No response");
-            }
-            Object response = ConnectionManager.getResponseParser().handleResponse(jsonResponse);
-            if (response instanceof Iterable<?>) {
-                Iterable<TicketDTO> itTickets = (Iterable<TicketDTO>) response;
-                ticketList.clear();
-                for (TicketDTO ticket : itTickets) {
-                    ticketList.add(ticket);
+            frontendClient.send(request.toString());
+            ConnectionManager.getDispatcher().addPendingRequest(request).thenAccept(message -> {;
+                try {
+                    Object response = ConnectionManager.getResponseParser().handleResponse(message.toString());
+                    if (response instanceof Iterable<?>) {
+                        Iterable<TicketDTO> itTickets = (Iterable<TicketDTO>) response;
+                        ticketList.clear();
+                        for (TicketDTO ticket : itTickets) {
+                            ticketList.add(ticket);
+                        }
+                    } else {
+                        throw new RuntimeException("Unexpected response: " + response);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } else {
-                throw new RuntimeException("Unexpected response: " + response);
-            }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -84,7 +93,6 @@ public class TicketsController implements Listener {
     @Override
     public void onUpdate(String updateType) {
         if (updateType.equals("TICKETS")) {
-            System.out.println("getting");
             loadTickets(null);
         }
     }

@@ -138,6 +138,7 @@ public class RequestHandler {
     }
 
     private void handleSaveTicket(JSONObject request, BackendClient client, JSONObject response) throws IOException {
+        System.out.println("Got save ticket request");
         JSONObject jsonPayload = request.getJSONObject("payload");
         int gameId = jsonPayload.getInt("gameId");
         String clientName = jsonPayload.getString("clientName");
@@ -153,11 +154,13 @@ public class RequestHandler {
             service.saveTicket(ticket);
             response.put("type", "SAVE_TICKET_RESPONSE");
             JSONObject payload = new JSONObject();
+            System.out.println("Ticket saved successfully");
             payload.put("message", "Ticket saved successfully");
             response.put("payload", payload);
             client.send(response.toString());
             JSONObject notifyMessage = new JSONObject();
             notifyMessage.put("type", "TICKETS");
+            System.out.println("Sending notification to all clients");
             ClientManager.broadcastChange(notifyMessage.toString());
         }
     }

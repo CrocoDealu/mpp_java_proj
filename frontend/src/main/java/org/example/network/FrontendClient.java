@@ -1,5 +1,6 @@
 package org.example.network;
 
+import javafx.application.Platform;
 import org.example.util.Listener;
 import org.json.JSONObject;
 
@@ -10,53 +11,56 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class FrontendClient {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
     private final List<Listener> listeners = new ArrayList<>();
-    private ConcurrentHashMap<Integer, BlockingQueue<String>> responseQueues = new ConcurrentHashMap<>();
-    private final BlockingQueue<String> notificationQueue = new LinkedBlockingQueue<>();
-    private final AtomicInteger messageIdGenerator = new AtomicInteger(0);
-    private final ResponseParser responseParser;
+    private Thread listenerThread;
+    private JSONDispatcher dispatcher;
 
-    public FrontendClient(String host, int port, ResponseParser responseParser) throws IOException {
+    public FrontendClient(String host, int port, JSONDispatcher dispatcher) throws IOException {
         socket = new Socket(host, port);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
-        this.responseParser = responseParser;
+        startListenerThread();
+        this.dispatcher = dispatcher;
+    }
+
+    private void startListenerThread() {
+        listenerThread = new Thread(() -> {
+            while (!socket.isClosed()) {
+                try {
+                   String jsonString = in.readLine();
+                    if (jsonString == null) {
+                        System.out.println("Connection closed");
+                        break;
+                    }
+                   JSONObject message = new JSONObject(jsonString);
+                   Platform.runLater(() -> dispatcher.dispatch(message));
+                } catch (IOException e) {
+                    System.out.println("Error in listener thread: " + e.getMessage());
+                }
+            }
+        });
+        listenerThread.setDaemon(true);
+        listenerThread.start();
     }
 
     public void send(String requestJson) {
         out.println(requestJson);
     }
 
-    public String sendAndWaitResponse(JSONObject request) throws InterruptedException {
-        int messageId = messageIdGenerator.incrementAndGet();
-        request.put("messageId", messageId);
-        BlockingQueue<String> responseQueue = new LinkedBlockingQueue<>(1);
-        responseQueues.put(messageId, responseQueue);
-
-        send(request.toString());
-        try {
-            return responseQueue.take();
-        } finally {
-            responseQueues.remove(messageId);
-            processQueuedNotifications();
-        }
-    }
-
-    public String receive() throws IOException {
-        return in.readLine();
-    }
-
     public void close() throws IOException {
+        if (listenerThread != null) {
+            try {
+                listenerThread.join(1000);
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted while waiting for listener thread to stop");
+            }
+        }
+        
         try {
             if (in != null) {
                 in.close();
@@ -67,8 +71,6 @@ public class FrontendClient {
             if (socket != null) {
                 socket.close();
             }
-            responseQueues.clear();
-            notificationQueue.clear();
             listeners.clear();
         } catch (IOException e) {
             System.out.println("Error closing resources: " + e.getMessage());
@@ -77,63 +79,5 @@ public class FrontendClient {
 
     public boolean isClosed() {
         return socket.isClosed();
-    }
-
-    public void startListening() {
-        new Thread(() -> {
-            while (!isClosed()) {
-                try {
-                    String message = receive();
-                    if (message != null) {
-                        handleMessage(message);
-                    }
-                } catch (IOException e) {
-                    break;
-                }
-            }
-        }, "MessageListener").start();
-    }
-
-    private void handleMessage(String message) {
-        JSONObject json = new JSONObject(message);
-        System.out.println(json);
-        if (json.has("messageId")) {
-            int messageId = json.getInt("messageId");
-            BlockingQueue<String> responseQueue = responseQueues.get(messageId);
-            if (responseQueue != null) {
-                responseQueue.offer(message);
-            }
-        } else {
-            notificationQueue.offer(message);
-        }
-    }
-
-    private void processQueuedNotifications() {
-        while (!notificationQueue.isEmpty()) {
-            String notification = notificationQueue.poll();
-            if (notification != null) {
-                notifyListeners(notification);
-            }
-        }
-    }
-
-    public void addListener(Listener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-    }
-
-    public void removeListener(Listener listener) {
-        listeners.remove(listener);
-    }
-
-    private void notifyListeners(String notification) {
-        JSONObject json = new JSONObject(notification);
-        String type = json.getString("type");
-        System.out.println(type);
-        for (Listener listener : listeners) {
-            System.out.println(listener);
-            listener.onUpdate(type);
-        }
     }
 }

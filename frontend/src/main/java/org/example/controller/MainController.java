@@ -17,6 +17,7 @@ import org.example.dto.GameDTO;
 import org.example.dto.TicketDTO;
 import org.example.network.FrontendClient;
 import org.example.network.ConnectionManager;
+import org.example.network.JSONDispatcher;
 import org.example.network.ResponseParser;
 import org.example.util.Listener;
 import org.json.JSONObject;
@@ -36,15 +37,8 @@ public class MainController implements Listener {
     public Button logOut;
 
     private final List<Stage> openedStages = new ArrayList<>();
-    private final List<TicketsController> listeners = new ArrayList<>();
     private CashierDTO loggedCashier;
     private GameDTO selectedGame;
-
-    private ResponseParser responseParser;
-
-    public MainController(ResponseParser responseParser) {
-        this.responseParser = responseParser;
-    }
 
     public MainController() {
     }
@@ -83,7 +77,6 @@ public class MainController implements Listener {
         });
         matchList.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue != null) {
-                System.out.println("Selected: " + newValue.getId());
                 selectedGame = newValue;
                 forGameLabel.setText(newValue.getTeam1() + " vs " + newValue.getTeam2());
                 updateSpinnerMaxValue(selectedGame.getCapacity());
@@ -92,34 +85,37 @@ public class MainController implements Listener {
         });
         noOfSeats.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10, 0));
         sellButton.setDisable(true);
-        ConnectionManager.getClient().addListener(this);
     }
 
     public void loadMatches() {
         matchList.getItems().clear();
         JSONObject request = new JSONObject();
         request.put("type", "GET_GAMES");
+        request.put("messageId", ConnectionManager.getNextMessageId());
         FrontendClient frontendClient = ConnectionManager.getClient();
-
         try {
-            String jsonResponse = frontendClient.sendAndWaitResponse(request);
-            if (jsonResponse == null) {
-                throw new RuntimeException("No response");
-            }
-            Object response = responseParser.handleResponse(jsonResponse);
-            if (response instanceof Iterable<?>) {
-                Iterable<GameDTO> games = (Iterable<GameDTO>) response;
-                ObservableList<GameDTO> gameObservableList = FXCollections.observableArrayList();
-                games.forEach(gameObservableList::add);
+            frontendClient.send(request.toString());
+            ConnectionManager.getDispatcher().addPendingRequest(request).thenAccept(response -> {
+                try {
+                    Object responseHandled = ConnectionManager.getResponseParser().handleResponse(response.toString());
+                    if (responseHandled instanceof Iterable<?> responseParsed) {
+                        Iterable<GameDTO> games = (Iterable<GameDTO>) responseParsed;
+                        ObservableList<GameDTO> gameObservableList = FXCollections.observableArrayList();
+                        games.forEach(gameObservableList::add);
 
-                matchList.setItems(gameObservableList);
-            } else {
-                throw new RuntimeException("Unexpected response: " + response);
-            }
+                        matchList.setItems(gameObservableList);
+                    } else {
+                        throw new RuntimeException("Unexpected response: " + response);
+                    }
 
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public void sellTicket(ActionEvent actionEvent) {
@@ -134,19 +130,24 @@ public class MainController implements Listener {
             payload.put("cashierId", loggedCashier.getId());
             payload.put("noOfSeats", noOfSeats.getValue());
             request.put("payload", payload);
+            request.put("messageId", ConnectionManager.getNextMessageId());
             FrontendClient frontendClient = ConnectionManager.getClient();
 
             try {
-                System.out.println("Sending sell ticket request");
-                String jsonString = frontendClient.sendAndWaitResponse(request);
-                System.out.println("Got sell ticket response" + jsonString);
-                JSONObject response = new JSONObject(jsonString);
-                if (response.has("payload")) {
-                    clearClientInfo();
-                }
+                frontendClient.send(request.toString());
+                ConnectionManager.getDispatcher().addPendingRequest(request).thenAccept(response -> {
+                    try {
+                        if (response.has("payload")) {
+                            clearClientInfo();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
     }
 
@@ -203,17 +204,11 @@ public class MainController implements Listener {
             Parent root = loader.load();
             Scene mainScene = new Scene(root);
             TicketsController controller = loader.getController();
-            ConnectionManager.getClient().addListener(controller);
-            listeners.add(controller);
+            controller.initializeResources();
             controller.loadTickets(null);
             Stage mainStage = new Stage();
             mainStage.setTitle("Tickets");
             mainStage.setScene(mainScene);
-
-            mainStage.setOnCloseRequest(event -> {
-                ConnectionManager.getClient().removeListener(controller);
-                listeners.remove(controller);
-            });
             mainStage.show();
             openedStages.add(mainStage);
         } catch (Exception ex) {
@@ -253,7 +248,7 @@ public class MainController implements Listener {
         currentStage.close();
     }
 
-    private static void endSession() {
+    private void endSession() {
         FrontendClient frontendClient = ConnectionManager.getClient();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("type", "LOGOUT");
@@ -269,11 +264,6 @@ public class MainController implements Listener {
         for (Stage stage : openedStages) {
             stage.close();
         }
-        listeners.clear();
-    }
-
-    public void setResponseHandler(ResponseParser responseParser) {
-        this.responseParser = responseParser;
     }
 
     @Override

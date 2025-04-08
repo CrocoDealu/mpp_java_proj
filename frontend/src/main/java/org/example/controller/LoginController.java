@@ -12,6 +12,7 @@ import javafx.util.Pair;
 import org.example.dto.CashierDTO;
 import org.example.network.FrontendClient;
 import org.example.network.ConnectionManager;
+import org.example.network.JSONDispatcher;
 import org.example.network.ResponseParser;
 import org.json.JSONObject;
 
@@ -19,8 +20,6 @@ import java.util.Optional;
 
 public class LoginController {
 
-    public LoginController() {
-    }
 
     public TextField username;
     public TextField password;
@@ -28,15 +27,13 @@ public class LoginController {
     public Label passwordErrorLabel;
 
     public Button login;
-    private ResponseParser responseParser;
 
-    public LoginController(ResponseParser responseParser) {
-        this.responseParser = responseParser;
+    public LoginController() {
     }
 
     public void onLogin(ActionEvent actionEvent) {
         clearFields();
-        
+
         String username = this.username.getText();
         String password = this.password.getText();
 
@@ -46,25 +43,30 @@ public class LoginController {
         requestPayload.put("password", password);
         request.put("type", "LOGIN");
         request.put("payload", requestPayload);
+        request.put("messageId", ConnectionManager.getNextMessageId());
         FrontendClient frontendClient = ConnectionManager.getClient();
-        if (responseParser == null) {
-            responseParser = ConnectionManager.getResponseParser();
-        }
         try {
-            String response = frontendClient.sendAndWaitResponse(request);
-            Object responseHandled = responseParser.handleResponse(response);
-            if (responseHandled instanceof Pair<?,?> responsePair) {
-
-                String reason = (String) responsePair.getValue();
-                CashierDTO cashier = (CashierDTO) responsePair.getKey();
-                if (reason.equals("USER_NOT_FOUND")) {
-                    usernameErrorLabel.setText("Username not found");
-                } else if (reason.equals("INCORRECT_PASSWORD")) {
-                    passwordErrorLabel.setText("Wrong password!");
-                } else {
-                    openMainPannel(cashier);
-                }
-            }
+            frontendClient.send(request.toString());
+            ConnectionManager.getDispatcher()
+                    .addPendingRequest(request)
+                    .thenAccept(response -> {
+                        Object responseHandled = ConnectionManager.getResponseParser().handleResponse(response.toString());
+                        if (responseHandled instanceof Pair<?,?> responsePair) {
+                            String reason = (String) responsePair.getValue();
+                            CashierDTO cashier = (CashierDTO) responsePair.getKey();
+                            if (reason.equals("USER_NOT_FOUND")) {
+                                usernameErrorLabel.setText("Username not found");
+                            } else if (reason.equals("INCORRECT_PASSWORD")) {
+                                passwordErrorLabel.setText("Wrong password!");
+                            } else {
+                                openMainPannel(cashier);
+                            }
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,13 +83,10 @@ public class LoginController {
             mainStage.setScene(mainScene);
             mainStage.show();
             MainController mainController = loader.getController();
-            mainController.setResponseHandler(responseParser);
             mainController.loadMatches();
             mainController.setCashier(cashier);
-
             mainStage.setOnCloseRequest(event -> {
                 event.consume();
-
                 mainController.shutdown();
             });
             Stage currentStage = (Stage) username.getScene().getWindow();

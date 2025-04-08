@@ -21,8 +21,6 @@ public class ResponseParser {
         switch (type) {
             case "LOGIN_RESPONSE":
                 return handleLogin(jsonObject);
-            case "SAVE_TICKET_RESPONSE":
-                return handleSaved(jsonObject);
             case "GET_GAMES_RESPONSE":
                 return handleGetGames(jsonObject);
             case "GET_TICKETS_RESPONSE":
@@ -57,11 +55,6 @@ public class ResponseParser {
             e.printStackTrace();
             return Collections.emptyList();
         }
-    }
-
-    private TicketDTO handleSaved(JSONObject jsonObject) {
-//        JSONObject jsonPayload = jsonObject.
-        return null;
     }
 
     private Pair<CashierDTO, String> handleLogin(JSONObject jsonObject) {
