@@ -21,10 +21,8 @@ public class ResponseParser {
         switch (type) {
             case "LOGIN_RESPONSE":
                 return handleLogin(jsonObject);
-            case "SAVE_TICKET":
+            case "SAVE_TICKET_RESPONSE":
                 return handleSaved(jsonObject);
-            case "UPDATE_GAME":
-                return handleUpdated(jsonObject);
             case "GET_GAMES_RESPONSE":
                 return handleGetGames(jsonObject);
             case "GET_TICKETS_RESPONSE":
@@ -61,11 +59,8 @@ public class ResponseParser {
         }
     }
 
-    private String handleUpdated(JSONObject jsonObject) {
-        return null;
-    }
-
-    private String handleSaved(JSONObject jsonObject) {
+    private TicketDTO handleSaved(JSONObject jsonObject) {
+//        JSONObject jsonPayload = jsonObject.
         return null;
     }
 

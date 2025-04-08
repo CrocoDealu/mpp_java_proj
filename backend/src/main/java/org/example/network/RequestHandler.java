@@ -134,8 +134,25 @@ public class RequestHandler {
     }
 
     private void handleSaveTicket(JSONObject jsonPayload, BackendClient client) {
-        System.out.println("Saving ticket");
-        
+        int gameId = jsonPayload.getInt("gameId");
+        String clientName = jsonPayload.getString("clientName");
+        String clientAddress = jsonPayload.getString("clientAddress");
+        int cashierId = jsonPayload.getInt("cashierId");
+        int noOfSeats = jsonPayload.getInt("noOfSeats");
+        Optional<Game> g = service.getGameById(gameId);
+        if (g.isPresent()) {
+            Game game = g.get();
+            game.setCapacity(game.getCapacity() - noOfSeats);
+            service.updateGame(game);
+            Ticket ticket = new Ticket(0, new Game(gameId), clientName, clientAddress, new Cashier(cashierId), noOfSeats);
+            Ticket t = service.saveTicket(ticket);
+            JSONObject response = new JSONObject();
+            response.put("type", "SAVE_TICKET_RESPONSE");
+            JSONObject payload = new JSONObject();
+            payload.put("message", "Ticket saved successfully");
+            response.put("payload", payload);
+            client.send(response.toString());
+        }
     }
 
     private void handleGetGames(BackendClient client) throws IOException {

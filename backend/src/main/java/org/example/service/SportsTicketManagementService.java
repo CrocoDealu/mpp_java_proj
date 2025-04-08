@@ -41,4 +41,8 @@ public class SportsTicketManagementService {
     public Iterable<Game> getAllGames() {
         return gameRepository.findAll();
     }
+
+    public Optional<Game> getGameById(int gameId) {
+        return gameRepository.findById(gameId);
+    }
 }

@@ -100,7 +100,6 @@ public class MainController {
         frontendClient.send(request.toString());
         try {
             String jsonResponse = frontendClient.receive();
-            System.out.println(jsonResponse);
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
@@ -123,13 +122,27 @@ public class MainController {
     public void sellTicket(ActionEvent actionEvent) {
         boolean canSell = canSellTicket(selectedGame);
         if (canSell) {
-            System.out.println("Selling ticket for game: " + selectedGame.getTeam1() + " vs " + selectedGame.getTeam2() + " for client: " + clientName.getText());
-            TicketDTO ticket = new TicketDTO(0, selectedGame, clientName.getText(), clientAddress.getText(), loggedCashier, noOfSeats.getValue());
-//            ticketService.saveTicket(ticket);
-            selectedGame.setCapacity(selectedGame.getCapacity() - noOfSeats.getValue());
-//            gameService.updateGame(selectedGame);
-            loadMatches();
-            clearClientInfo();
+            JSONObject request = new JSONObject();
+            request.put("type", "SAVE_TICKET");
+            JSONObject payload = new JSONObject();
+            payload.put("gameId", selectedGame.getId());
+            payload.put("clientName", clientName.getText());
+            payload.put("clientAddress", clientAddress.getText());
+            payload.put("cashierId", loggedCashier.getId());
+            payload.put("noOfSeats", noOfSeats.getValue());
+            request.put("payload", payload);
+            FrontendClient frontendClient = ConnectionManager.getClient();
+            frontendClient.send(request.toString());
+            try {
+                String jsonString = frontendClient.receive();
+                JSONObject response = new JSONObject(jsonString);
+                if (response.has("payload")) {
+                    loadMatches();
+                    clearClientInfo();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

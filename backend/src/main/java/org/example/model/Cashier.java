@@ -10,11 +10,16 @@ public class Cashier extends Entity<Integer> {
 
     @JsonIgnore
     private String password;
+
     public Cashier(int id, String name, String username, String password) {
         super(id);
         this.name = name;
         this.username = username;
         this.password = password;
+    }
+
+    public Cashier(Integer integer) {
+        super(integer);
     }
 
     public String getUsername() {

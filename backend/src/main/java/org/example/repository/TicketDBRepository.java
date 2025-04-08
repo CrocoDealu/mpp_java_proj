@@ -99,6 +99,10 @@ public class TicketDBRepository implements TicketRepository {
             ResultSet generatedKeys = stmt.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
+                Cashier c = cashierRepository.findById(entity.getSeller().getId()).orElse(null);
+                Game g = gameRepository.findById(entity.getGame().getId()).orElse(null);
+                entity.setSeller(c);
+                entity.setGame(g);
                 logger.traceExit();
                 entity.setId(generatedId);
                 return entity;

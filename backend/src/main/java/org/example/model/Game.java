@@ -25,6 +25,10 @@ public class Game extends Entity<Integer> {
         this.ticketPrice = ticketPrice;
     }
 
+    public Game(Integer integer) {
+        super(integer);
+    }
+
     public String getTeam1() {
         return team1;
     }
