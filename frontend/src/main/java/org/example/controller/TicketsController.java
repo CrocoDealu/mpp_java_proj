@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -14,10 +15,11 @@ import org.example.dto.TicketDTO;
 import org.example.network.ConnectionManager;
 import org.example.network.FrontendClient;
 import org.example.network.ResponseParser;
+import org.example.util.Listener;
 import org.json.JSONObject;
 
 
-public class TicketsController {
+public class TicketsController implements Listener {
     public TextField nameField;
     public TextField addressField;
     public TableView<TicketDTO> ticketsTable;
@@ -28,13 +30,7 @@ public class TicketsController {
     public TableColumn<TicketDTO, Integer> seatsColumn;
     private ObservableList<TicketDTO> ticketList = FXCollections.observableArrayList();
 
-    private ResponseParser responseParser;
-
     public TicketsController() {
-    }
-
-    public TicketsController(ResponseParser responseParser) {
-        this.responseParser = responseParser;
     }
 
     public void initialize() {
@@ -62,13 +58,15 @@ public class TicketsController {
         }
         request.put("payload", params);
         FrontendClient frontendClient = ConnectionManager.getClient();
-        frontendClient.send(request.toString());
+
         try {
-            String jsonResponse = frontendClient.receive();
+            System.out.println("Getting tickets");
+            String jsonResponse = frontendClient.sendAndWaitResponse(request);
+            System.out.println("Got tickets: " + jsonResponse);
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
-            Object response = responseParser.handleResponse(jsonResponse);
+            Object response = ConnectionManager.getResponseParser().handleResponse(jsonResponse);
             if (response instanceof Iterable<?>) {
                 Iterable<TicketDTO> itTickets = (Iterable<TicketDTO>) response;
                 ticketList.clear();
@@ -83,7 +81,11 @@ public class TicketsController {
         }
     }
 
-    public void setResponseHandler(ResponseParser responseParser) {
-        this.responseParser = responseParser;
+    @Override
+    public void onUpdate(String updateType) {
+        if (updateType.equals("TICKETS")) {
+            System.out.println("getting");
+            loadTickets(null);
+        }
     }
 }

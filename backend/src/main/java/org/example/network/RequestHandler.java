@@ -1,8 +1,5 @@
 package org.example.network;
 
-import ch.qos.logback.core.joran.sanity.Pair;
-import ch.qos.logback.core.net.server.Client;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dto.ClientFilterDTO;
 import org.example.model.Cashier;
@@ -23,26 +20,27 @@ public class RequestHandler {
         this.service = service;
     }
 
-    public void handleRequest(String request, BackendClient client) throws IOException {
+    public void handleRequest(String requestString, BackendClient client) throws IOException {
         try {
-            JSONObject jsonObject = new JSONObject(request);
-            String type = jsonObject.getString("type");
+            JSONObject request = new JSONObject(requestString);
+            JSONObject response = new JSONObject();
+            if (request.has("messageId")) {
+                response.put("messageId", request.getInt("messageId"));
+            }
+            String type = request.getString("type");
             switch (type) {
                 case "LOGIN":
-                    handleLogin(jsonObject.getJSONObject("payload"), client);
+                    handleLogin(request, client, response);
                     break;
                 case "SAVE_TICKET":
-                    handleSaveTicket(jsonObject.getJSONObject("payload"), client);
+                    handleSaveTicket(request, client, response);
                     break;
                 case "GET_GAMES":
-                    handleGetGames(client);
+                    handleGetGames(client, response);
                     break;
                 case "GET_TICKETS":
-                    ClientFilterDTO filter = null;
-                    if (jsonObject.has("payload")) {
-                        filter = parseFilter(jsonObject.getJSONObject("payload"));
-                    }
-                    handleGetTickets(client, filter);
+                    ClientFilterDTO filter = getClientFilterDTO(request);
+                    handleGetTickets(client, filter, response);
                     break;
                 case "ERROR":
                     handleError();
@@ -59,6 +57,14 @@ public class RequestHandler {
         }
     }
 
+    private ClientFilterDTO getClientFilterDTO(JSONObject request) {
+        ClientFilterDTO filter = null;
+        if (request.has("payload")) {
+            filter = parseFilter(request.getJSONObject("payload"));
+        }
+        return filter;
+    }
+
     private ClientFilterDTO parseFilter(JSONObject jsonObject) {
         String username = "", address = "";
         if (jsonObject.has("username")) {
@@ -71,26 +77,26 @@ public class RequestHandler {
         return new ClientFilterDTO(username, address);
     }
 
-    private void handleLogin(JSONObject jsonPayload, BackendClient client) throws IOException {
+    private void handleLogin(JSONObject request, BackendClient client, JSONObject response) throws IOException {
+        JSONObject jsonPayload = request.getJSONObject("payload");
         String username = jsonPayload.getString("username");
         String password = jsonPayload.getString("password");
         Optional<Cashier> optionalCashier = service.getCashierByUsername(username);
-        
+        System.out.println("Attempting login");
         if (optionalCashier.isEmpty()) {
             // User not found case
-            sendFailedLoginResponse(client, "USER_NOT_FOUND");
+            sendFailedLoginResponse(client, "USER_NOT_FOUND", response);
         } else if (!optionalCashier.get().getPassword().equals(password)) {
             // Incorrect password case
-            sendFailedLoginResponse(client, "INCORRECT_PASSWORD", optionalCashier.get().getId());
+            sendFailedLoginResponse(client, "INCORRECT_PASSWORD", optionalCashier.get().getId(), response);
         } else {
             // Successful login
             Cashier cashier = optionalCashier.get();
-            sendSuccessfulLoginResponse(cashier, client);
+            sendSuccessfulLoginResponse(cashier, client, response);
         }
     }
     
-    private void sendSuccessfulLoginResponse(Cashier cashier, BackendClient client) throws IOException {
-        JSONObject response = new JSONObject();
+    private void sendSuccessfulLoginResponse(Cashier cashier, BackendClient client, JSONObject response) throws IOException {
         response.put("type", "LOGIN_RESPONSE");
         
         JSONObject payload = new JSONObject();
@@ -103,10 +109,9 @@ public class RequestHandler {
         client.send(response.toString());
     }
     
-    private void sendFailedLoginResponse(BackendClient client, String reason) throws IOException {
-        JSONObject response = new JSONObject();
+    private void sendFailedLoginResponse(BackendClient client, String reason, JSONObject response) throws IOException {
         response.put("type", "LOGIN_RESPONSE");
-        
+
         JSONObject payload = new JSONObject();
         payload.put("token", "");
         payload.put("id", -1);
@@ -118,8 +123,7 @@ public class RequestHandler {
         client.send(response.toString());
     }
     
-    private void sendFailedLoginResponse(BackendClient client, String reason, Integer userId) throws IOException {
-        JSONObject response = new JSONObject();
+    private void sendFailedLoginResponse(BackendClient client, String reason, Integer userId, JSONObject response) throws IOException {
         response.put("type", "LOGIN_RESPONSE");
         
         JSONObject payload = new JSONObject();
@@ -133,7 +137,8 @@ public class RequestHandler {
         client.send(response.toString());
     }
 
-    private void handleSaveTicket(JSONObject jsonPayload, BackendClient client) {
+    private void handleSaveTicket(JSONObject request, BackendClient client, JSONObject response) throws IOException {
+        JSONObject jsonPayload = request.getJSONObject("payload");
         int gameId = jsonPayload.getInt("gameId");
         String clientName = jsonPayload.getString("clientName");
         String clientAddress = jsonPayload.getString("clientAddress");
@@ -145,23 +150,24 @@ public class RequestHandler {
             game.setCapacity(game.getCapacity() - noOfSeats);
             service.updateGame(game);
             Ticket ticket = new Ticket(0, new Game(gameId), clientName, clientAddress, new Cashier(cashierId), noOfSeats);
-            Ticket t = service.saveTicket(ticket);
-            JSONObject response = new JSONObject();
+            service.saveTicket(ticket);
             response.put("type", "SAVE_TICKET_RESPONSE");
             JSONObject payload = new JSONObject();
             payload.put("message", "Ticket saved successfully");
             response.put("payload", payload);
             client.send(response.toString());
+            JSONObject notifyMessage = new JSONObject();
+            notifyMessage.put("type", "TICKETS");
+            ClientManager.broadcastChange(notifyMessage.toString());
         }
     }
 
-    private void handleGetGames(BackendClient client) throws IOException {
+    private void handleGetGames(BackendClient client, JSONObject response) throws IOException {
         Iterable<Game> games = service.getAllGames();
         List<Game> gameList = new ArrayList<>();
         games.forEach(gameList::add);
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(gameList);
-        JSONObject response = new JSONObject();
         response.put("type", "GET_GAMES_RESPONSE");
         JSONObject payload = new JSONObject();
         payload.put("result", jsonString);
@@ -169,7 +175,7 @@ public class RequestHandler {
         client.send(response.toString());
     }
 
-    private void handleGetTickets(BackendClient client, ClientFilterDTO filter) throws IOException {
+    private void handleGetTickets(BackendClient client, ClientFilterDTO filter, JSONObject response) throws IOException {
         Iterable<Ticket> tickets = service.getTicketsForClient(filter);
         List<Ticket> ticketList = new ArrayList<>();
         for (Ticket ticket : tickets) {
@@ -177,7 +183,6 @@ public class RequestHandler {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(ticketList);
-        JSONObject response = new JSONObject();
         response.put("type", "GET_TICKETS_RESPONSE");
         JSONObject payload = new JSONObject();
         payload.put("result", jsonString);

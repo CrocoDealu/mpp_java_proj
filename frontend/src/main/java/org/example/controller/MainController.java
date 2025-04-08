@@ -18,13 +18,14 @@ import org.example.dto.TicketDTO;
 import org.example.network.FrontendClient;
 import org.example.network.ConnectionManager;
 import org.example.network.ResponseParser;
+import org.example.util.Listener;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainController {
+public class MainController implements Listener {
     public ListView<GameDTO> matchList;
     public TextField clientName;
     public TextField clientAddress;
@@ -35,6 +36,7 @@ public class MainController {
     public Button logOut;
 
     private final List<Stage> openedStages = new ArrayList<>();
+    private final List<TicketsController> listeners = new ArrayList<>();
     private CashierDTO loggedCashier;
     private GameDTO selectedGame;
 
@@ -90,6 +92,7 @@ public class MainController {
         });
         noOfSeats.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10, 0));
         sellButton.setDisable(true);
+        ConnectionManager.getClient().addListener(this);
     }
 
     public void loadMatches() {
@@ -97,9 +100,9 @@ public class MainController {
         JSONObject request = new JSONObject();
         request.put("type", "GET_GAMES");
         FrontendClient frontendClient = ConnectionManager.getClient();
-        frontendClient.send(request.toString());
+
         try {
-            String jsonResponse = frontendClient.receive();
+            String jsonResponse = frontendClient.sendAndWaitResponse(request);
             if (jsonResponse == null) {
                 throw new RuntimeException("No response");
             }
@@ -132,12 +135,13 @@ public class MainController {
             payload.put("noOfSeats", noOfSeats.getValue());
             request.put("payload", payload);
             FrontendClient frontendClient = ConnectionManager.getClient();
-            frontendClient.send(request.toString());
+
             try {
-                String jsonString = frontendClient.receive();
+                System.out.println("Sending sell ticket request");
+                String jsonString = frontendClient.sendAndWaitResponse(request);
+                System.out.println("Got sell ticket response" + jsonString);
                 JSONObject response = new JSONObject(jsonString);
                 if (response.has("payload")) {
-                    loadMatches();
                     clearClientInfo();
                 }
             } catch (Exception e) {
@@ -199,12 +203,17 @@ public class MainController {
             Parent root = loader.load();
             Scene mainScene = new Scene(root);
             TicketsController controller = loader.getController();
-            controller.setResponseHandler(responseParser);
+            ConnectionManager.getClient().addListener(controller);
+            listeners.add(controller);
             controller.loadTickets(null);
             Stage mainStage = new Stage();
             mainStage.setTitle("Tickets");
             mainStage.setScene(mainScene);
 
+            mainStage.setOnCloseRequest(event -> {
+                ConnectionManager.getClient().removeListener(controller);
+                listeners.remove(controller);
+            });
             mainStage.show();
             openedStages.add(mainStage);
         } catch (Exception ex) {
@@ -224,9 +233,6 @@ public class MainController {
             primaryStage.setTitle("Login");
             primaryStage.setScene(scene);
 
-            LoginController loginController = loader.getController();
-            loginController.setResponseHandler(responseParser);
-
             primaryStage.setResizable(false);
 
             primaryStage.show();
@@ -238,6 +244,13 @@ public class MainController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void shutdown() {
+        endSession();
+        closeAllOpenedStages();
+        Stage currentStage = (Stage) clientName.getScene().getWindow();
+        currentStage.close();
     }
 
     private static void endSession() {
@@ -256,9 +269,17 @@ public class MainController {
         for (Stage stage : openedStages) {
             stage.close();
         }
+        listeners.clear();
     }
 
     public void setResponseHandler(ResponseParser responseParser) {
         this.responseParser = responseParser;
+    }
+
+    @Override
+    public void onUpdate(String updateType) {
+        if (updateType.equals("GAMES")) {
+            loadMatches();
+        }
     }
 }

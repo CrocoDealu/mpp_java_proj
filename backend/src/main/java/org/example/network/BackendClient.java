@@ -17,7 +17,7 @@ public class BackendClient {
         out = new PrintWriter(socket.getOutputStream(), true);
     }
 
-    public void send(String requestJson) {
+    public synchronized void send(String requestJson) {
         out.println(requestJson);
     }
 

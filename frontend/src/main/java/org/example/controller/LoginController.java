@@ -35,7 +35,6 @@ public class LoginController {
     }
 
     public void onLogin(ActionEvent actionEvent) {
-        // Clear error messages before making a new login attempt
         clearFields();
         
         String username = this.username.getText();
@@ -48,11 +47,14 @@ public class LoginController {
         request.put("type", "LOGIN");
         request.put("payload", requestPayload);
         FrontendClient frontendClient = ConnectionManager.getClient();
-        frontendClient.send(request.toString());
+        if (responseParser == null) {
+            responseParser = ConnectionManager.getResponseParser();
+        }
         try {
-            String response = frontendClient.receive();
+            String response = frontendClient.sendAndWaitResponse(request);
             Object responseHandled = responseParser.handleResponse(response);
             if (responseHandled instanceof Pair<?,?> responsePair) {
+
                 String reason = (String) responsePair.getValue();
                 CashierDTO cashier = (CashierDTO) responsePair.getKey();
                 if (reason.equals("USER_NOT_FOUND")) {
@@ -74,19 +76,21 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/main_view.fxml"));
             Parent root = loader.load();
             Scene mainScene = new Scene(root);
-
             Stage mainStage = new Stage();
             mainStage.setTitle("Basketball match handler");
             mainStage.setScene(mainScene);
-
             mainStage.show();
-
             MainController mainController = loader.getController();
             mainController.setResponseHandler(responseParser);
             mainController.loadMatches();
             mainController.setCashier(cashier);
-            Stage currentStage = (Stage) username.getScene().getWindow();
 
+            mainStage.setOnCloseRequest(event -> {
+                event.consume();
+
+                mainController.shutdown();
+            });
+            Stage currentStage = (Stage) username.getScene().getWindow();
             currentStage.close();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -96,9 +100,5 @@ public class LoginController {
     private void clearFields() {
         usernameErrorLabel.setText("");
         passwordErrorLabel.setText("");
-    }
-
-    public void setResponseHandler(ResponseParser responseParser) {
-        this.responseParser = responseParser;
     }
 }

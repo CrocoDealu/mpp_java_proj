@@ -15,11 +15,8 @@ public class Main extends Application{
     @Override
     public void start(Stage primaryStage) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/login.fxml"));
-
         try {
             Parent root = loader.load();
-            LoginController loginController = loader.getController();
-            loginController.setResponseHandler(new ResponseParser());
             Scene scene = new Scene(root);
             primaryStage.setTitle("Login");
             primaryStage.setScene(scene);
