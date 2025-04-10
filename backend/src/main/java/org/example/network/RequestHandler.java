@@ -146,9 +146,6 @@ public class RequestHandler {
         int noOfSeats = jsonPayload.getInt("noOfSeats");
         Optional<Game> g = service.getGameById(gameId);
         if (g.isPresent()) {
-            Game game = g.get();
-            game.setCapacity(game.getCapacity() - noOfSeats);
-            service.updateGame(game);
             Ticket ticket = new Ticket(0, new Game(gameId), clientName, clientAddress, new Cashier(cashierId), noOfSeats);
             service.saveTicket(ticket);
             response.put("type", "SAVE_TICKET_RESPONSE");
@@ -156,12 +153,6 @@ public class RequestHandler {
             payload.put("message", "Ticket saved successfully");
             response.put("payload", payload);
             client.send(response.toString());
-            JSONObject updateTicketListMessage = new JSONObject();
-            updateTicketListMessage.put("type", "TICKETS");
-            ClientManager.broadcastChange(updateTicketListMessage.toString());
-            JSONObject updateGameListMessage = new JSONObject();
-            updateGameListMessage.put("type", "GAMES");
-            ClientManager.broadcastChange(updateGameListMessage.toString());
         }
     }
 
@@ -198,7 +189,6 @@ public class RequestHandler {
     }
 
     private void handleLogout(BackendClient client) throws IOException {
-        ClientManager.removeClient(client);
-        client.close();
+        service.logoutClient(client);
     }
 }

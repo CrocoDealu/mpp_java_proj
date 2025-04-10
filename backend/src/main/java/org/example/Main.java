@@ -19,7 +19,7 @@ public class Main{
 
     public static void main(String[] args) {
         springContext = new AnnotationConfigApplicationContext(AppConfig.class);
-        ExecutorService executor = Executors.newFixedThreadPool(10); // Handle up to 10 clients
+        ExecutorService executor = Executors.newFixedThreadPool(10);
 
         try (ServerSocket serverSocket = new ServerSocket(1234)) {
             System.out.println("Server is listening on port 1234");
@@ -41,15 +41,16 @@ public class Main{
     public static void handleClient(Socket socket) {
         try {
             BackendClient backendClient = new BackendClient(socket);
-            ClientManager.addClient(backendClient);
-            RequestHandler requestHandler = new RequestHandler(springContext.getBean(SportsTicketManagementService.class));
+            SportsTicketManagementService sportsTicketManagementService = springContext.getBean(SportsTicketManagementService.class);
+            sportsTicketManagementService.loginClient(backendClient);
+            RequestHandler requestHandler = springContext.getBean(RequestHandler.class);
 
             while (!backendClient.isClosed()) {
                 try {
                     String request = backendClient.receive();
                     if (request == null) {
                         System.out.println("Client disconnected");
-                        ClientManager.removeClient(backendClient);
+                        sportsTicketManagementService.logoutClient(backendClient);
                         break;
                     }
                     requestHandler.handleRequest(request, backendClient);

@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class BackendClient {
+public class BackendClient implements Subscriber {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -51,5 +51,10 @@ public class BackendClient {
 
     public boolean isClosed() {
         return socket.isClosed();
+    }
+
+    @Override
+    public void onNotify(String notification) {
+        send(notification);
     }
 }
