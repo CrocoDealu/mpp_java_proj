@@ -14,7 +14,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Optional;
 
-public class SportsTicketManagementService {
+public class SportsTicketManagementService implements IService<BackendClient> {
     private CashierRepository cashierRepository;
     private GameRepository gameRepository;
     private TicketRepository ticketRepository;

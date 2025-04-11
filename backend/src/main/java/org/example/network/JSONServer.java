@@ -1,5 +1,6 @@
 package org.example.network;
 
+import org.example.service.IService;
 import org.example.service.SportsTicketManagementService;
 import org.example.utils.AppConfig;
 import org.springframework.context.ApplicationContext;
@@ -16,15 +17,12 @@ import java.util.concurrent.Executors;
 public class JSONServer {
 
     private final ApplicationContext springContext;
-    private final SportsTicketManagementService sportsTicketManagementService;
     private final RequestHandler requestHandler;
 
 
     public JSONServer(ApplicationContext springContext,
-                      SportsTicketManagementService sportsTicketManagementService,
                       RequestHandler requestHandler) {
         this.springContext = springContext;
-        this.sportsTicketManagementService = sportsTicketManagementService;
         this.requestHandler = requestHandler;
     }
 
@@ -51,7 +49,7 @@ public class JSONServer {
     public void handleClient(Socket socket) {
         try {
             BackendClient backendClient = new BackendClient(socket);
-            SportsTicketManagementService sportsTicketManagementService = springContext.getBean(SportsTicketManagementService.class);
+            IService<BackendClient> sportsTicketManagementService = springContext.getBean(SportsTicketManagementService.class);
             sportsTicketManagementService.loginClient(backendClient);
             RequestHandler requestHandler = springContext.getBean(RequestHandler.class);
 
