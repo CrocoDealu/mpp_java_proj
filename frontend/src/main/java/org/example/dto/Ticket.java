@@ -1,17 +1,17 @@
 package org.example.dto;
 
-public class TicketDTO {
+public class Ticket {
     private Integer id;
-    private GameDTO game;
+    private Game game;
     private String customerName;
     private String customerAddress;
-    private CashierDTO seller;
+    private Cashier seller;
     private int noOfSeats;
 
-    public TicketDTO() {
+    public Ticket() {
     }
 
-    public TicketDTO(Integer id, GameDTO game, String customerName, String customerAddress, CashierDTO seller, int noOfSeats) {
+    public Ticket(Integer id, Game game, String customerName, String customerAddress, Cashier seller, int noOfSeats) {
         this.id = id;
         this.game = game;
         this.customerName = customerName;
@@ -28,11 +28,11 @@ public class TicketDTO {
         this.id = id;
     }
 
-    public GameDTO getGame() {
+    public Game getGame() {
         return game;
     }
 
-    public void setGame(GameDTO game) {
+    public void setGame(Game game) {
         this.game = game;
     }
 
@@ -52,11 +52,11 @@ public class TicketDTO {
         this.customerAddress = customerAddress;
     }
 
-    public CashierDTO getSeller() {
+    public Cashier getSeller() {
         return seller;
     }
 
-    public void setSeller(CashierDTO seller) {
+    public void setSeller(Cashier seller) {
         this.seller = seller;
     }
 

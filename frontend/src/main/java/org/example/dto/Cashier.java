@@ -1,14 +1,14 @@
 package org.example.dto;
 
-public class CashierDTO {
+public class Cashier {
     private int id;
     private String name;
     private String username;
 
-    public CashierDTO() {
+    public Cashier() {
     }
 
-    public CashierDTO(int id, String name, String username) {
+    public Cashier(int id, String name, String username) {
         this.id = id;
         this.name = name;
         this.username = username;

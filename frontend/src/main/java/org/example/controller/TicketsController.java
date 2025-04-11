@@ -5,17 +5,14 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import org.example.dto.ClientFilterDTO;
-import org.example.dto.TicketDTO;
+import org.example.dto.Ticket;
 import org.example.network.ConnectionManager;
 import org.example.network.FrontendClient;
-import org.example.network.JSONDispatcher;
-import org.example.network.ResponseParser;
 import org.example.util.Listener;
 import org.json.JSONObject;
 
@@ -23,13 +20,13 @@ import org.json.JSONObject;
 public class TicketsController implements Listener {
     public TextField nameField;
     public TextField addressField;
-    public TableView<TicketDTO> ticketsTable;
+    public TableView<Ticket> ticketsTable;
     public Button searchButton;
-    public TableColumn<TicketDTO, String> clientNameColumn;
-    public TableColumn<TicketDTO, String> clientAddressColumn;
-    public TableColumn<TicketDTO, String> matchColumn;
-    public TableColumn<TicketDTO, Integer> seatsColumn;
-    private ObservableList<TicketDTO> ticketList = FXCollections.observableArrayList();
+    public TableColumn<Ticket, String> clientNameColumn;
+    public TableColumn<Ticket, String> clientAddressColumn;
+    public TableColumn<Ticket, String> matchColumn;
+    public TableColumn<Ticket, Integer> seatsColumn;
+    private ObservableList<Ticket> ticketList = FXCollections.observableArrayList();
 
     public TicketsController() {
     }
@@ -73,9 +70,9 @@ public class TicketsController implements Listener {
                 try {
                     Object response = ConnectionManager.getResponseParser().handleResponse(message.toString());
                     if (response instanceof Iterable<?>) {
-                        Iterable<TicketDTO> itTickets = (Iterable<TicketDTO>) response;
+                        Iterable<Ticket> itTickets = (Iterable<Ticket>) response;
                         ticketList.clear();
-                        for (TicketDTO ticket : itTickets) {
+                        for (Ticket ticket : itTickets) {
                             ticketList.add(ticket);
                         }
                     } else {

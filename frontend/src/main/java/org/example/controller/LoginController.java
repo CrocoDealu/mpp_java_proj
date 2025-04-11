@@ -9,14 +9,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-import org.example.dto.CashierDTO;
+import org.example.dto.Cashier;
 import org.example.network.FrontendClient;
 import org.example.network.ConnectionManager;
-import org.example.network.JSONDispatcher;
-import org.example.network.ResponseParser;
 import org.json.JSONObject;
-
-import java.util.Optional;
 
 public class LoginController {
 
@@ -53,7 +49,7 @@ public class LoginController {
                         Object responseHandled = ConnectionManager.getResponseParser().handleResponse(response.toString());
                         if (responseHandled instanceof Pair<?,?> responsePair) {
                             String reason = (String) responsePair.getValue();
-                            CashierDTO cashier = (CashierDTO) responsePair.getKey();
+                            Cashier cashier = (Cashier) responsePair.getKey();
                             if (reason.equals("USER_NOT_FOUND")) {
                                 usernameErrorLabel.setText("Username not found");
                             } else if (reason.equals("INCORRECT_PASSWORD")) {
@@ -73,7 +69,7 @@ public class LoginController {
 
     }
 
-    private void openMainPannel(CashierDTO cashier) {
+    private void openMainPannel(Cashier cashier) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/main_view.fxml"));
             Parent root = loader.load();

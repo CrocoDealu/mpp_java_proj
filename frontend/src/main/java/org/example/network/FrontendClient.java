@@ -37,8 +37,10 @@ public class FrontendClient {
                         System.out.println("Connection closed");
                         break;
                     }
-                   JSONObject message = new JSONObject(jsonString);
-                   Platform.runLater(() -> dispatcher.dispatch(message));
+                   if (!jsonString.isEmpty()) {
+                       JSONObject message = new JSONObject(jsonString);
+                       Platform.runLater(() -> dispatcher.dispatch(message));
+                   }
                 } catch (IOException e) {
                     System.out.println("Error in listener thread: " + e.getMessage());
                 }

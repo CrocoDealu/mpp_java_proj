@@ -12,13 +12,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.example.dto.CashierDTO;
-import org.example.dto.GameDTO;
-import org.example.dto.TicketDTO;
+import org.example.dto.Cashier;
+import org.example.dto.Game;
 import org.example.network.FrontendClient;
 import org.example.network.ConnectionManager;
-import org.example.network.JSONDispatcher;
-import org.example.network.ResponseParser;
 import org.example.util.Listener;
 import org.json.JSONObject;
 
@@ -27,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainController implements Listener {
-    public ListView<GameDTO> matchList;
+    public ListView<Game> matchList;
     public TextField clientName;
     public TextField clientAddress;
     public Button sellButton;
@@ -37,16 +34,16 @@ public class MainController implements Listener {
     public Button logOut;
 
     private final List<Stage> openedStages = new ArrayList<>();
-    private CashierDTO loggedCashier;
-    private GameDTO selectedGame;
+    private Cashier loggedCashier;
+    private Game selectedGame;
 
     public MainController() {
     }
 
     public void initialize() {
-        matchList.setCellFactory(param -> new ListCell<GameDTO>() {
+        matchList.setCellFactory(param -> new ListCell<Game>() {
             @Override
-            protected void updateItem(GameDTO item, boolean empty) {
+            protected void updateItem(Game item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (empty || item == null) {
@@ -105,8 +102,8 @@ public class MainController implements Listener {
                 try {
                     Object responseHandled = ConnectionManager.getResponseParser().handleResponse(response.toString());
                     if (responseHandled instanceof Iterable<?> responseParsed) {
-                        Iterable<GameDTO> games = (Iterable<GameDTO>) responseParsed;
-                        ObservableList<GameDTO> gameObservableList = FXCollections.observableArrayList();
+                        Iterable<Game> games = (Iterable<Game>) responseParsed;
+                        ObservableList<Game> gameObservableList = FXCollections.observableArrayList();
                         games.forEach(gameObservableList::add);
 
                         matchList.setItems(gameObservableList);
@@ -157,7 +154,7 @@ public class MainController implements Listener {
         }
     }
 
-    public void setCashier(CashierDTO cashier) {
+    public void setCashier(Cashier cashier) {
         loggedCashier = cashier;
     }
 
@@ -167,7 +164,7 @@ public class MainController implements Listener {
         noOfSeats.getValueFactory().setValue(0);
     }
 
-    private boolean canSellTicket(GameDTO selectedGame) {
+    private boolean canSellTicket(Game selectedGame) {
         if (selectedGame != null ) {
             boolean clientNameEmpty = clientName.getText().isEmpty();
             boolean clientAddressEmpty = clientAddress.getText().isEmpty();

@@ -1,6 +1,6 @@
 package org.example.dto;
 
-public class GameDTO {
+public class Game {
     private Integer id;
     private String team1;
     private String team2;
@@ -12,10 +12,10 @@ public class GameDTO {
     private float ticketPrice;
 
 
-    public GameDTO() {
+    public Game() {
     }
 
-    public GameDTO(Integer id, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage, float ticketPrice) {
+    public Game(Integer id, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage, float ticketPrice) {
         this.id = id;
         this.team1 = team1;
         this.team2 = team2;
