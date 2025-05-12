@@ -66,7 +66,7 @@ public class Ticket extends Entity<Integer> {
     @Override
     public String toString() {
         return "Ticket{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", noOfSeats=" + noOfSeats +
                 ", seller=" + seller +
                 ", customerAddress='" + customerAddress + '\'' +

@@ -2,13 +2,21 @@ package org.example.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.*;
 import java.util.Objects;
 
+@jakarta.persistence.Entity
+@Table (name = "Cashiers")
 public class Cashier extends Entity<Integer> {
+
+    @Column (name = "name")
     private String name;
+
+    @Column (name = "username")
     private String username;
 
     @JsonIgnore
+    @Column (name = "password")
     private String password;
 
     public Cashier(int id, String name, String username, String password) {
@@ -18,9 +26,14 @@ public class Cashier extends Entity<Integer> {
         this.password = password;
     }
 
-    public Cashier(Integer integer) {
-        super(integer);
+    public Cashier(Integer id) {
+        super(id);
     }
+
+    public Cashier() {
+        super(0);
+    }
+
 
     public String getUsername() {
         return username;
@@ -49,7 +62,7 @@ public class Cashier extends Entity<Integer> {
     @Override
     public String toString() {
         return "Cashier{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", password='" + password + '\'' +
                 ", username='" + username + '\'' +
                 ", name='" + name + '\'' +

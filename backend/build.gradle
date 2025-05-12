@@ -24,6 +24,7 @@ jar {
 
 repositories {
     mavenCentral()
+    maven { url 'https://mvnrepository.com/artifact/net.kemitix/sqlite-dialect'}
 }
 
 dependencies {
@@ -36,6 +37,7 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.hibernate.orm:hibernate-community-dialects:7.0.0.CR1'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     runtimeOnly group: 'org.xerial', name: 'sqlite-jdbc', version: '3.45.1.0'
@@ -45,3 +47,4 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+

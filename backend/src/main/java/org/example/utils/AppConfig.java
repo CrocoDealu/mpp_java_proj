@@ -5,15 +5,16 @@ import org.example.network.JSONServer;
 import org.example.network.RequestHandler;
 import org.example.repository.*;
 import org.example.service.SportsTicketManagementService;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.FileReader;
 import java.util.Objects;
 import java.util.Properties;
 
-@Configuration
+@org.springframework.context.annotation.Configuration
 @ComponentScan(basePackages = "org.example")
 public class AppConfig {
 
@@ -26,6 +27,19 @@ public class AppConfig {
             e.printStackTrace();
         }
         return properties;
+    }
+
+    @Bean
+    public SessionFactory sessionFactory() {
+        try {
+            Configuration hibernateConfig = new Configuration();
+
+            hibernateConfig.configure("hibernate.cfg.xml");
+
+            return hibernateConfig.buildSessionFactory();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to configure Hibernate SessionFactory", e);
+        }
     }
 
     @Bean
@@ -44,8 +58,11 @@ public class AppConfig {
     }
 
     @Bean
-    public GameDBRepository gameDBRepository(JdbcUtils jdbcUtils) {
-        return new GameDBRepository(jdbcUtils);
+//    public GameRepository gameRepository(JdbcUtils jdbcUtils) {
+//        return new GameDBRepository(jdbcUtils);
+//    }
+    public GameRepository gameRepository(SessionFactory sessionFactory) {
+        return new HibernateGameRepository(sessionFactory);
     }
 
     @Bean
@@ -54,12 +71,15 @@ public class AppConfig {
     }
 
     @Bean
-    public CashierDBRepository cashierDBRepository(JdbcUtils jdbcUtils) {
-        return new CashierDBRepository(jdbcUtils);
+//    public CashierRepository cashierDBRepository(JdbcUtils jdbcUtils) {
+//        return new CashierDBRepository(jdbcUtils);
+//    }
+    public CashierRepository cashierRepository(SessionFactory sessionFactory) {
+        return new HibernateCashierRepository(sessionFactory);
     }
 
     @Bean
-    public TicketDBRepository ticketDBRepository(JdbcUtils jdbcUtils, GameDBRepository gameDBRepository, CashierDBRepository cashierDBRepository) {
-        return new TicketDBRepository(jdbcUtils, gameDBRepository, cashierDBRepository);
+    public TicketRepository ticketRepository(JdbcUtils jdbcUtils, GameRepository gameRepository, CashierRepository cashierRepository) {
+        return new TicketDBRepository(jdbcUtils, gameRepository, cashierRepository);
     }
 }

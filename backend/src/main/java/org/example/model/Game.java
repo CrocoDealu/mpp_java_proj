@@ -1,16 +1,29 @@
 package org.example.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@jakarta.persistence.Entity
+@Table (name = "Games")
 public class Game extends Entity<Integer> {
 
+    @Column (name = "team1")
     private String team1;
+    @Column (name = "team2")
     private String team2;
+    @Column (name = "team_1_score")
     private int team1Score;
+    @Column (name = "team_2_score")
     private int team2Score;
+    @Column (name = "competition")
     private String competition;
+    @Column (name = "capacity")
     private int capacity;
+    @Column (name = "stage")
     private String stage;
+    @Column (name = "price")
     private float ticketPrice;
 
     public Game(Integer integer, String team1, String team2, int team1Score, int team2Score, String competition, int capacity, String stage, float ticketPrice) {
@@ -27,6 +40,10 @@ public class Game extends Entity<Integer> {
 
     public Game(Integer integer) {
         super(integer);
+    }
+
+    public Game() {
+        super();
     }
 
     public String getTeam1() {
@@ -96,7 +113,7 @@ public class Game extends Entity<Integer> {
     @Override
     public String toString() {
         return "Game{" +
-                "id=" + id + ", " +
+                "id=" + getId() + ", " +
                 "team1='" + team1 + '\'' +
                 ", team2='" + team2 + '\'' +
                 ", team1Score=" + team1Score +

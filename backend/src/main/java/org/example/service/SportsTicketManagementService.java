@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class SportsTicketManagementService implements IService<BackendClient> {
-    private CashierRepository cashierRepository;
-    private GameRepository gameRepository;
-    private TicketRepository ticketRepository;
-    private ClientManager clientManager;
+    private final CashierRepository cashierRepository;
+    private final GameRepository gameRepository;
+    private final TicketRepository ticketRepository;
+    private final ClientManager clientManager;
 
     public SportsTicketManagementService(CashierRepository cashierRepository, GameRepository gameRepository, TicketRepository ticketRepository, ClientManager clientManager) {
         this.cashierRepository = cashierRepository;
