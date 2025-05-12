@@ -1,34 +1,47 @@
 package org.example;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import org.example.controller.LoginController;
-import javafx.application.Application;
-import org.example.network.JSONDispatcher;
-import org.example.network.ResponseParser;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
 
-public class Main extends Application{
-
-    @Override
-    public void start(Stage primaryStage) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/xmlFiles/login.fxml"));
-        try {
-
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            primaryStage.setTitle("Login");
-            primaryStage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        primaryStage.show();
-    }
+public class Main{
 
     public static void main(String[] args) {
-        launch(args);
+        GameRestClient gameRestClient = new GameRestClient("http://localhost:8080/api");
+        gameRestClient.getGames();
+        gameRestClient.getOneGame();
+        JSONObject object = new JSONObject();
+        object.put("id", 11);
+        object.put("team1", "Rapid");
+        object.put("team2", "U Cluj");
+        object.put("team1Score", 3);
+        object.put("team2Score", 0);
+        object.put("competition", "Supercupa");
+        object.put("capacity", 100);
+        object.put("stage", "Finals");
+        object.put("ticketPrice", 10.99);
+        String response = gameRestClient.addGame(object.toString());
+        if (response != null) {
+            JSONObject object1 = new JSONObject(response);
+            int id = object1.getInt("id");
+            object.put("ticketPrice", 25.99);
+            gameRestClient.updateGame(id, object.toString());
+
+            try {
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("Delete added game? (1 for yes, 0 for no)");
+                int yes = scanner.nextInt();
+                if (yes == 1) {
+                    gameRestClient.deleteGame(id);
+                } else {
+                    System.out.println("no");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

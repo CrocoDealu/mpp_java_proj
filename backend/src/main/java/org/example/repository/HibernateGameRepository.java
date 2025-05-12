@@ -2,6 +2,7 @@ package org.example.repository;
 
 import org.example.model.Game;
 import org.example.model.Ticket;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -38,16 +39,43 @@ public class HibernateGameRepository implements GameRepository {
 
     @Override
     public Game save(Game entity) {
-        return null;
+
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.save(entity);
+            transaction.commit();
+            return entity;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error saving game", e);
+        }
     }
 
     @Override
     public Optional<Game> deleteById(Integer integer) {
-        return Optional.empty();
+
+        try (Session session = sessionFactory.openSession()) {
+            Transaction transaction = session.beginTransaction();
+            Game game = session.get(Game.class, integer);
+            if (game != null) {
+                session.delete(game);
+                transaction.commit();
+                return Optional.of(game);
+            } else {
+                transaction.rollback();
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error deleting game", e);
+        }
     }
 
     @Override
     public Game update(Game entity) {
+        if (findById(entity.getId()).isEmpty()) {
+            return new Game();
+        }
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();

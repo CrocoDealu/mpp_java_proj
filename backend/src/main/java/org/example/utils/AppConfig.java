@@ -1,8 +1,5 @@
 package org.example.utils;
 
-import org.example.network.ClientManager;
-import org.example.network.JSONServer;
-import org.example.network.RequestHandler;
 import org.example.repository.*;
 import org.example.service.SportsTicketManagementService;
 import org.hibernate.SessionFactory;
@@ -43,37 +40,21 @@ public class AppConfig {
     }
 
     @Bean
-    public ClientManager clientManager() {
-        return new ClientManager();
-    }
-
-    @Bean
-    public RequestHandler requestHandler(SportsTicketManagementService sportsTicketManagementService) {
-        return new RequestHandler(sportsTicketManagementService);
-    }
-
-    @Bean
     public JdbcUtils jdbcUtils(Properties properties) {
         return new JdbcUtils(properties);
     }
 
     @Bean
-//    public GameRepository gameRepository(JdbcUtils jdbcUtils) {
-//        return new GameDBRepository(jdbcUtils);
-//    }
     public GameRepository gameRepository(SessionFactory sessionFactory) {
         return new HibernateGameRepository(sessionFactory);
     }
 
     @Bean
-    public SportsTicketManagementService sportsTicketManagementService(GameRepository gameRepository, TicketRepository ticketRepository, CashierRepository cashierRepository, ClientManager clientManager) {
-        return new SportsTicketManagementService(cashierRepository, gameRepository, ticketRepository, clientManager);
+    public SportsTicketManagementService sportsTicketManagementService(GameRepository gameRepository, TicketRepository ticketRepository, CashierRepository cashierRepository) {
+        return new SportsTicketManagementService(cashierRepository, gameRepository, ticketRepository);
     }
 
     @Bean
-//    public CashierRepository cashierDBRepository(JdbcUtils jdbcUtils) {
-//        return new CashierDBRepository(jdbcUtils);
-//    }
     public CashierRepository cashierRepository(SessionFactory sessionFactory) {
         return new HibernateCashierRepository(sessionFactory);
     }

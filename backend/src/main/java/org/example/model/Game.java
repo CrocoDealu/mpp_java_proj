@@ -1,6 +1,8 @@
 package org.example.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
 
 import java.util.Objects;
@@ -8,6 +10,9 @@ import java.util.Objects;
 @jakarta.persistence.Entity
 @Table (name = "Games")
 public class Game extends Entity<Integer> {
+
+    public Game() {
+    }
 
     @Column (name = "team1")
     private String team1;
@@ -36,14 +41,6 @@ public class Game extends Entity<Integer> {
         this.capacity = capacity;
         this.stage = stage;
         this.ticketPrice = ticketPrice;
-    }
-
-    public Game(Integer integer) {
-        super(integer);
-    }
-
-    public Game() {
-        super();
     }
 
     public String getTeam1() {

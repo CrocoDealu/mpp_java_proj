@@ -1,7 +1,5 @@
 package org.example.service;
 
-import org.example.network.BackendClient;
-import org.example.network.ClientManager;
 import org.example.repository.CashierRepository;
 import org.example.repository.GameRepository;
 import org.example.repository.TicketRepository;
@@ -10,21 +8,21 @@ import org.example.model.Cashier;
 import org.example.model.Game;
 import org.example.model.Ticket;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-public class SportsTicketManagementService implements IService<BackendClient> {
+@Service
+public class SportsTicketManagementService {
     private final CashierRepository cashierRepository;
     private final GameRepository gameRepository;
     private final TicketRepository ticketRepository;
-    private final ClientManager clientManager;
 
-    public SportsTicketManagementService(CashierRepository cashierRepository, GameRepository gameRepository, TicketRepository ticketRepository, ClientManager clientManager) {
+    public SportsTicketManagementService(CashierRepository cashierRepository, GameRepository gameRepository, TicketRepository ticketRepository) {
         this.cashierRepository = cashierRepository;
         this.gameRepository = gameRepository;
         this.ticketRepository = ticketRepository;
-        this.clientManager = clientManager;
     }
 
     public Iterable<Ticket> getTicketsForClient(ClientFilterDTO filter) {
@@ -41,10 +39,8 @@ public class SportsTicketManagementService implements IService<BackendClient> {
         Ticket savedTicket = ticketRepository.save(ticket);
         JSONObject updateTicketListMessage = new JSONObject();
         updateTicketListMessage.put("type", "TICKETS");
-        notifyClients(updateTicketListMessage.toString());
         JSONObject updateGameListMessage = new JSONObject();
         updateGameListMessage.put("type", "GAMES");
-        notifyClients(updateGameListMessage.toString());
         return savedTicket;
     }
 
@@ -64,20 +60,11 @@ public class SportsTicketManagementService implements IService<BackendClient> {
         return gameRepository.findById(gameId);
     }
 
-    public void loginClient(BackendClient client) {
-        clientManager.subscribe(client);
+    public Game saveGame(Game game) {
+        return gameRepository.save(game);
     }
 
-    public void logoutClient(BackendClient client) {
-        try {
-            clientManager.unsubscribe(client);
-            client.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void notifyClients(String notification) {
-        clientManager.notifySubscribers(notification);
+    public Optional<Game> deleteGame(Integer id) {
+        return gameRepository.deleteById(id);
     }
 }

@@ -1,7 +1,8 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.4.4'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 application {
@@ -19,25 +20,20 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
-    implementation 'org.openjfx:javafx-controls:24'
-    implementation 'org.openjfx:javafx-fxml:24'
-    implementation 'org.openjfx:javafx-graphics:24'
-    implementation 'org.openjfx:javafx-base:24'
     implementation 'org.json:json:20240303'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.4.5'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 }
 
-javafx {
-    version = "24"
-    modules = [ 'javafx.controls' ]
-}
 
 tasks.withType(JavaExec).configureEach {
     doFirst {
         jvmArgs = [
-                '--module-path', files(configurations.runtimeClasspath).asPath,
-                '--add-modules', 'javafx.controls,javafx.fxml'
+                '--module-path', files(configurations.runtimeClasspath).asPath
         ]
     }
 }
