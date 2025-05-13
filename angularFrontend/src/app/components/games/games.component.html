@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div>
+  <h1>Games Management</h1>
+
+  <h2>Add a New Game</h2>
+  <form (ngSubmit)="addGame()">
+    <input [(ngModel)]="newGame.team1" name="team1" placeholder="Team 1" required />
+    <input [(ngModel)]="newGame.team2" name="team2" placeholder="Team 2" required />
+    <input [(ngModel)]="newGame.team1Score" name="team1Score" type="number" placeholder="Team 1 Score" required />
+    <input [(ngModel)]="newGame.team2Score" name="team2Score" type="number" placeholder="Team 2 Score" required />
+    <input [(ngModel)]="newGame.competition" name="competition" placeholder="Competition" required />
+    <input [(ngModel)]="newGame.capacity" name="capacity" type="number" placeholder="Capacity" required />
+    <input [(ngModel)]="newGame.stage" name="stage" placeholder="Stage" required />
+    <input [(ngModel)]="newGame.ticketPrice" name="ticketPrice" type="number" placeholder="Ticket Price" required />
+    <button type="submit">Add Game</button>
+  </form>
+
+  <h2>All Games</h2>
+  <table>
+    <thead>
+    <tr>
+      <th>Team 1</th>
+      <th>Team 2</th>
+      <th>Score</th>
+      <th>Competition</th>
+      <th>Capacity</th>
+      <th>Stage</th>
+      <th>Price</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let game of games">
+      <td>{{ game.team1 }}</td>
+      <td>{{ game.team2 }}</td>
+      <td>{{ game.team1Score }} - {{ game.team2Score }}</td>
+      <td>{{ game.competition }}</td>
+      <td>{{ game.capacity }}</td>
+      <td>{{ game.stage }}</td>
+      <td>{{ game.ticketPrice }}</td>
+      <td>
+        <button (click)="selectGame(game)">Edit</button>
+        <button (click)="deleteGame(game.id!)">Delete</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <h2 *ngIf="selectedGame">Edit Game</h2>
+  <form *ngIf="selectedGame" (ngSubmit)="updateGame()">
+    <input [(ngModel)]="selectedGame.team1" name="team1" placeholder="Team 1" required />
+    <input [(ngModel)]="selectedGame.team2" name="team2" placeholder="Team 2" required />
+    <input [(ngModel)]="selectedGame.team1Score" name="team1Score" type="number" placeholder="Team 1 Score" required />
+    <input [(ngModel)]="selectedGame.team2Score" name="team2Score" type="number" placeholder="Team 2 Score" required />
+    <input [(ngModel)]="selectedGame.competition" name="competition" placeholder="Competition" required />
+    <input [(ngModel)]="selectedGame.capacity" name="capacity" type="number" placeholder="Capacity" required />
+    <input [(ngModel)]="selectedGame.stage" name="stage" placeholder="Stage" required />
+    <input [(ngModel)]="selectedGame.ticketPrice" name="ticketPrice" type="number" placeholder="Ticket Price" required />
+    <button type="submit">Update Game</button>
+  </form>
+</div>
+</body>
+</html>

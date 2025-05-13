@@ -49,9 +49,7 @@ public class SportsTicketsController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Game> deleteGame(@PathVariable Integer id) {
-        if (sportsTicketManagementService.deleteGame(id).isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        Optional<Game> deletedGame = sportsTicketManagementService.deleteGame(id);
+        return deletedGame.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
