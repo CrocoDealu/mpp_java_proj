@@ -8,11 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 @RestController
-@RequestMapping("/api/tickets")
+@RequestMapping("/api/games")
 public class SportsTicketsController {
     private final SportsTicketManagementService sportsTicketManagementService;
 
@@ -41,10 +42,14 @@ public class SportsTicketsController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game) {
-        System.out.println("Update game: " + game);
-        game.setId(id);
-        Game updatedGame = sportsTicketManagementService.updateGame(game);
-        return ResponseEntity.ok(updatedGame);
+        if (Objects.equals(id, game.getId())) {
+            System.out.println("Update game: " + game);
+            game.setId(id);
+            Game updatedGame = sportsTicketManagementService.updateGame(game);
+            return ResponseEntity.ok(updatedGame);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")
