@@ -3,8 +3,10 @@ package org.example.rest;
 import org.example.model.Cashier;
 import org.example.model.Game;
 import org.example.service.SportsTicketManagementService;
+import org.example.utils.GameEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,16 +18,18 @@ import java.util.stream.StreamSupport;
 @RequestMapping("/api/games")
 public class SportsTicketsController {
     private final SportsTicketManagementService sportsTicketManagementService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public SportsTicketsController(SportsTicketManagementService sportsTicketManagementService) {
+    public SportsTicketsController(SportsTicketManagementService sportsTicketManagementService, SimpMessagingTemplate messagingTemplate) {
         this.sportsTicketManagementService = sportsTicketManagementService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping
     public ResponseEntity<List<Game>> getAllGames() {
-        List<Game> cashiers = StreamSupport.stream(sportsTicketManagementService.getAllGames().spliterator(), false).toList();
-        return ResponseEntity.ok(cashiers);
+        List<Game> games = StreamSupport.stream(sportsTicketManagementService.getAllGames().spliterator(), false).toList();
+        return ResponseEntity.ok(games);
     }
 
     @GetMapping("/{id}")
@@ -37,15 +41,16 @@ public class SportsTicketsController {
     @PostMapping
     public ResponseEntity<Game> createGame(@RequestBody Game game) {
         Game savedGame = sportsTicketManagementService.saveGame(game);
+        messagingTemplate.convertAndSend("/topic/games", new GameEvent("CREATED", savedGame));
         return ResponseEntity.ok(savedGame);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Game> updateGame(@PathVariable Integer id, @RequestBody Game game) {
         if (Objects.equals(id, game.getId())) {
-            System.out.println("Update game: " + game);
             game.setId(id);
             Game updatedGame = sportsTicketManagementService.updateGame(game);
+            messagingTemplate.convertAndSend("/topic/games", new GameEvent("UPDATED", updatedGame));
             return ResponseEntity.ok(updatedGame);
         } else {
             return ResponseEntity.badRequest().build();
@@ -55,6 +60,7 @@ public class SportsTicketsController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Game> deleteGame(@PathVariable Integer id) {
         Optional<Game> deletedGame = sportsTicketManagementService.deleteGame(id);
+        deletedGame.ifPresent(game -> messagingTemplate.convertAndSend("/topic/games", new GameEvent("DELETED", game)));
         return deletedGame.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
